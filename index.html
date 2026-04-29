@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warehouse RPA Cikupa - Japfa Food</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:wght@900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        /* CSS Gabungan dari Header & Index */
+        :root { --japfa-orange: #F37021; --japfa-green: #39b54a; --bg-main: #f4f6f9; }
+        body { background-color: var(--bg-main); font-family: 'Segoe UI', sans-serif; transition: 0.3s; }
+        .glass-container { background: linear-gradient(135deg, rgba(0, 150, 64, 0.9) 0%, rgba(0, 77, 33, 0.95) 100%); border-radius: 30px; padding: 25px; color: #fff; text-align: center; }
+        #digital-clock { font-size: 3.5rem; font-weight: 800; line-height: 1; }
+        .widget-card { border-radius: 16px; border: 1px solid #e2e8f0; background: #fff; transition: 0.3s; cursor: pointer; }
+        .widget-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+        .prayer-box { background: rgba(255, 255, 255, 0.1); border-radius: 18px; padding: 12px 5px; flex: 1; transition: 0.3s; }
+        .prayer-box.active { background: var(--japfa-orange) !important; transform: scale(1.05); }
+        .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 450px; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); display: flex; justify-content: space-around; padding: 10px; border-radius: 35px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 9999; }
+        .nav-item-footer { text-decoration: none; color: #94a3b8; font-size: 0.65rem; font-weight: 700; text-align: center; }
+        .nav-item-footer.active { color: var(--japfa-green); }
+        @media (max-width: 991px) { .sidebar-desktop { display: none; } }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid p-0">
+    <header class="bg-white p-3 shadow-sm mb-4 border-bottom border-warning border-4">
+        <div class="d-flex justify-content-between align-items-center container">
+            <div>
+                <span style="font-family: 'Playfair Display'; font-weight: 900; font-size: 1.5rem;">JAPFA</span>
+                <span style="font-family: 'Dancing Script'; color: var(--japfa-green); font-size: 1.6rem;">Food</span>
+            </div>
+            <div class="text-end">
+                <div class="badge bg-light text-dark border rounded-pill px-3">WH RPA CIKUPA</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container px-3 pb-5">
+        <div class="glass-container mb-4">
+            <div id="digital-clock">00:00</div>
+            <div class="fw-bold opacity-75 mb-3" id="current-date">-- -- 2026</div>
+            <div class="d-flex gap-2" id="prayer-times-container">
+                <div class="prayer-box" id="p-Fajr"><span>Subuh</span><br><b id="shubuh">--:--</b></div>
+                <div class="prayer-box" id="p-Dhuhr"><span>Dzuhur</span><br><b id="dzuhur">--:--</b></div>
+                <div class="prayer-box" id="p-Asr"><span>Ashar</span><br><b id="ashar">--:--</b></div>
+                <div class="prayer-box" id="p-Maghrib"><span>Maghrib</span><br><b id="maghrib">--:--</b></div>
+                <div class="prayer-box" id="p-Isha"><span>Isya</span><br><b id="isya">--:--</b></div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-6">
+                <div class="widget-card p-3 h-100 text-center" style="border-top: 4px solid var(--japfa-green);" onclick="location.href='stok.html'">
+                    <small class="text-muted fw-bold d-block mb-2">OCCUPANCY</small>
+                    <h2 class="fw-bold text-dark mb-0" id="occ-val">0%</h2>
+                    <div class="progress mt-2" style="height: 6px;">
+                        <div id="occ-bar" class="progress-bar bg-success" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="widget-card p-3 h-100 text-center" style="border-top: 4px solid #0288d1;">
+                    <small class="text-muted fw-bold d-block mb-2">TRUK AKTIF</small>
+                    <h2 class="fw-bold text-dark mb-0" id="truck-val">0</h2>
+                    <small class="text-muted">Unit</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="card widget-card border-0 shadow-sm mb-5">
+            <div class="card-header bg-white fw-bold py-3"><i class="fas fa-history me-2 text-info"></i>Aktivitas Terbaru</div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-center small">
+                    <thead class="table-light">
+                        <tr><th>JAM</th><th>TIPE</th><th>MATERIAL</th><th>QTY</th></tr>
+                    </thead>
+                    <tbody id="log-body">
+                        <tr><td colspan="4" class="py-4 text-muted">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item-footer active"><i class="fas fa-home fa-lg d-block mb-1"></i>Home</a>
+        <a href="stok.html" class="nav-item-footer"><i class="fas fa-boxes fa-lg d-block mb-1"></i>Stok</a>
+        <a href="#" class="nav-item-footer"><i class="fas fa-truck fa-lg d-block mb-1"></i>Truk</a>
+        <a href="#" class="nav-item-footer"><i class="fas fa-cog fa-lg d-block mb-1"></i>Set</a>
+    </nav>
+</div>
+
+<script src="koneksi.js"></script>
+<script>
+    // 1. Inisialisasi Jam & Tanggal
+    function updateTime() {
+        const now = new Date();
+        document.getElementById('digital-clock').innerText = now.toLocaleTimeString('id-ID', {hour12:false});
+        document.getElementById('current-date').innerText = now.toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+    }
+    setInterval(updateTime, 1000);
+
+    // 2. Ambil Data Real-time dari Supabase
+    async function fetchDashboardData() {
+        // A. Ambil Statistik Occupancy dari app_config (disimpan oleh stok.html)
+        const { data: config } = await supabase.from('app_config').select('config_data').eq('id', 'wms_settings').single();
+        if (config) {
+            const inv = config.config_data.inventory || {};
+            const layout = config.config_data.layout || {};
+            // Hitung persentase sederhana (Logic dari index.php kamu)
+            let totalRak = Object.keys(layout).filter(k => layout[k]).length;
+            let terisi = Object.keys(inv).length;
+            let pct = Math.round((terisi / totalRak) * 100) || 0;
+            
+            document.getElementById('occ-val').innerText = pct + "%";
+            document.getElementById('occ-bar').style.width = pct + "%";
+            document.getElementById('occ-bar').className = pct > 85 ? "progress-bar bg-danger" : "progress-bar bg-success";
+        }
+
+        // B. Ambil Aktivitas Terbaru dari tabel documents (Tracing Doc)
+        const { data: logs } = await supabase.from('documents').select('*').order('waktu', {ascending: false}).limit(10);
+        const tbody = document.getElementById('log-body');
+        if (logs && logs.length > 0) {
+            tbody.innerHTML = '';
+            logs.forEach(doc => {
+                const detail = doc.detail[0] || {}; // Ambil baris pertama detail
+                const row = `<tr>
+                    <td>${doc.waktu.split(', ')[1] || '--'}</td>
+                    <td><span class="badge bg-primary">${doc.tipe}</span></td>
+                    <td class="text-start"><b>${detail.mat || '-'}</b></td>
+                    <td class="text-primary fw-bold">${detail.qty || 0}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="4" class="py-4 text-muted">Belum ada aktivitas.</td></tr>';
+        }
+    }
+
+    // 3. Ambil Jadwal Sholat (Aladhan API)
+    async function getPrayerTimes() {
+        try {
+            const res = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Tangerang&country=Indonesia&method=2');
+            const json = await res.json();
+            const t = json.data.timings;
+            document.getElementById('shubuh').innerText = t.Fajr;
+            document.getElementById('dzuhur').innerText = t.Dhuhr;
+            document.getElementById('ashar').innerText = t.Asr;
+            document.getElementById('maghrib').innerText = t.Maghrib;
+            document.getElementById('isya').innerText = t.Isha;
+        } catch (e) { console.error("Gagal ambil jadwal sholat"); }
+    }
+
+    window.onload = () => {
+        updateTime();
+        getPrayerTimes();
+        fetchDashboardData();
+    };
+</script>
+</body>
+</html>
