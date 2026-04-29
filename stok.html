@@ -13,50 +13,37 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
-        /* ========================================= */
-        /* CSS 100% ASLI & OPTIMASI                  */
-        /* ========================================= */
         :root { 
             --red: #ffadad; --green: #dcfce7; --orange: #ffd6a5; --blue: #a0c4ff;      
             --dark: #4a4e69; --purple: #bdb2ff; --expired: #f1f5f9; --warning: #ffe6a7;   
             --bg-main: #f8fafc; --text-dark: #334155; --text-red: #e63946;  
             --alert-bg: #fff1f2; --text-green: #166534; 
-            --box-s: 58px; 
-            --box-f: 12px;
-            --japfa-green: #39b54a;
+            --box-s: 58px; --box-f: 12px; --japfa-green: #39b54a;
         }
-        
         body { background-color: var(--bg-main); font-family: 'Inter', sans-serif; color: var(--text-dark); }
         .warehouse-pro-container { padding: 20px; padding-bottom: 30px; font-size: 13px; max-width: 1400px; margin: 0 auto; }
-        
         .panel, .summary-card, .lorong-section { background: white; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
         .panel { padding: 20px; margin-bottom: 18px; }
         .lorong-section { padding: 15px; margin-bottom: 20px; overflow-x: auto; }
-        
         .summary-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 18px; }
         .summary-card { padding: 15px; display: flex; flex-direction: column; justify-content: space-between; border-top: 5px solid var(--blue); transition: all 0.2s ease;}
         .total-card { grid-column: span 2; color: #0369a1; border-top-color: #7dd3fc; }
         .summary-val { font-size: 24px; font-weight: 900; text-align: center; margin-top: 5px; }
         .summary-label { font-size: 11px; font-weight: 800; text-align: center; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px; }
-
         .clickable-widget { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative; }
         .clickable-widget:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; filter: brightness(0.97); }
-
         .legend-panel { background: white; padding: 15px; border-radius: 12px; margin-bottom: 18px; display: flex; gap: 10px; flex-wrap: wrap; font-size: 13px; border: 1px solid #e2e8f0; }
         .legend-item { display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; padding: 6px 10px; border-radius: 8px; transition: all 0.2s; border: 1px solid transparent; }
         .legend-item:hover { background: #f1f5f9; border-color: #cbd5e1; transform: translateY(-2px); }
         .l-box { width: 18px; height: 18px; border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); }
-
         .bin-grid { display: grid; grid-template-columns: repeat(25, var(--box-s)); gap: 5px; width: fit-content; margin-top: 10px; }
         .bin-box { width: var(--box-s); height: var(--box-s); background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Consolas', monospace; font-size: var(--box-f); overflow: hidden; position: relative; transition: all 0.2s ease;}
         .bin-box.has-data { cursor: pointer; }
         .bin-header, .vert-label { background: var(--dark) !important; color: white !important; font-weight: bold !important; cursor: default; border: none; font-size: calc(var(--box-f) - 1px);}
         .bin-addr { font-weight: 900; color: #1e293b; font-size: calc(var(--box-f) - 2px); margin-bottom: 2px; pointer-events: none;}
         .bin-box b { font-size: calc(var(--box-f) + 1px); pointer-events: none;}
-
         .highlight-find, .highlight-pick { outline: 4px solid #1e293b !important; box-shadow: 0 0 15px rgba(30, 41, 59, 0.7) !important; z-index: 100 !important; animation: pBlink 0.6s ease-in-out infinite alternate !important; }
         @keyframes pBlink { 0% { transform: scale(1.1); filter: brightness(1.2); opacity: 1; } 100% { transform: scale(0.9); filter: brightness(0.6); opacity: 0.6; } }
-
         .text-expired { color: var(--text-red) !important; font-weight: 900 !important; }
         .is-expired { background: var(--expired) !important; border: 2px solid var(--text-red) !important; }
         .occ-blok { background: #fee2e2 !important; color: #991b1b !important; border: 2px dashed #dc2626 !important; }
@@ -65,49 +52,38 @@
         .occ-purple { background: var(--purple) !important; color: #4c1d95 !important; } 
         .occ-green { background: #bbf7d0 !important; color: #14532d !important; }
         .occ-orange { background: var(--orange) !important; color: #7c2d12 !important; }
-
         .row-pick { background-color: #dcfce7 !important; color: #166534 !important; }
         .box-manual { border: 2px dashed #0ea5e9 !important; position: relative; }
         .manual-dot { position: absolute; top: 4px; right: 4px; width: 10px; height: 10px; background: #0ea5e9; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(14,165,233,0.5); pointer-events: none;}
-
         #mapWrapper { transition: all 0.3s ease; }
         #mapWrapper.fullscreen-mode { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100000; background: #f1f5f9; padding: 20px; overflow: auto; }
         .map-toolbar { position: relative; z-index: 100001; transition: all 0.3s ease; }
         #mapWrapper.fullscreen-mode .map-toolbar { position: sticky; top: -20px; margin-top: -20px; border-radius: 0 0 12px 12px; background: rgba(255, 255, 255, 0.95) !important; backdrop-filter: blur(10px); box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important; }
-
         .tabs-wp { display: flex; gap: 8px; margin-bottom: 18px; background: #e2e8f0; padding: 8px; border-radius: 12px; flex-wrap: wrap; }
         .tab-btn { padding: 12px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; background: transparent; flex: 1; color: #64748b; font-size: 13px; transition: background-color 0.2s; }
         .tab-btn.active { background: white; color: #1e293b; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        
         .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 15px; }
         .btn-wp { width: 100%; padding: 12px 10px; border: none; border-radius: 10px; cursor: pointer; font-weight: 800; font-size: 11px; color: white; transition: transform 0.15s ease, filter 0.15s ease; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); letter-spacing: 0.3px; }
         .btn-wp:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.08); }
         .btn-wp:disabled { opacity: 0.7; cursor: not-allowed; }
-        
         table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; border-radius: 8px; overflow: hidden; }
         th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: middle;}
         th { background: #f8fafc; color: #475569; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #cbd5e1; }
-        
         .modal-wp { display: none; position: fixed; z-index: 100002; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); }
         .modal-content-wp { background: white; margin: 5% auto; padding: 25px; width: 95%; max-width: 900px; border-radius: 16px; max-height: 85vh; overflow-y: auto;}
-        
         .status-wrapper { display: flex; flex-wrap: wrap; gap: 5px; }
         .badge-status { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; }
         .bg-alloc { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
-
         .stat-box { text-align: center; padding: 15px 10px; border-radius: 15px; }
         .stat-val { font-size: 1.8rem; font-weight: 900; margin-top: 5px; line-height: 1; }
         .stat-lbl { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-
         input.form-control, textarea.form-control, select.form-select { font-size: 13px; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; }
         input.form-control:focus, textarea.form-control:focus { border-color: var(--blue); outline: none; box-shadow: 0 0 0 3px rgba(160, 196, 255, 0.2); }
-        
         .doc-item { cursor: pointer; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; transition: 0.2s; }
         .doc-item:hover { background: #f8fafc; border-color: var(--blue); }
         .doc-item.active { background: #e0f2fe; border-color: #0288d1; border-left: 5px solid #0288d1; }
-        
         @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .session-panel-active { animation: slideDown 0.3s ease-out forwards; background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%); border: 1px solid #bae6fd; border-radius: 12px; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(2, 136, 209, 0.15); }
         .btn-sesi-aktif { animation: pBlink 1.5s infinite alternate !important; background: #64748b !important; pointer-events: none; }
@@ -142,9 +118,7 @@
             <h5 class="fw-bold text-dark m-0" id="sessionDocNum">000000</h5>
             <span class="badge bg-primary mt-2" id="sessionCount">0 Pergerakan</span>
         </div>
-        <button class="btn btn-success fw-bold shadow-sm px-4 py-2" style="border-radius: 10px;" onclick="endSession()">
-            <i class="fas fa-check-circle me-2"></i> SELESAI & SIMPAN
-        </button>
+        <button class="btn btn-success fw-bold shadow-sm px-4 py-2" style="border-radius: 10px;" onclick="endSession()"><i class="fas fa-check-circle me-2"></i> SELESAI & SIMPAN</button>
     </div>
 
     <div class="summary-container" id="dashSummary"></div>
@@ -302,7 +276,6 @@
             <div id="batchResumBody"></div>
         </div>
     </div>
-
 </div>
 
 <div id="binModal" class="modal-wp">
@@ -349,13 +322,19 @@ let editMode = false, recommendedSlocs = [], currentEditSloc = "", isBinEditMode
 const TODAY = new Date();
 
 // ==========================================
-// 1. FUNGSI SINKRONISASI CLOUD (DIPERBAIKI)
+// 1. FUNGSI SINKRONISASI CLOUD (ANTI-HANG)
 // ==========================================
 async function loadDataFromCloud() {
     try {
-        // PERBAIKAN: Menggunakan .maybeSingle() agar tidak error jika tabel kosong
-        const { data: config, error } = await window.dbCloud.from('app_config').select('config_data').eq('id', 'wms_settings').maybeSingle();
+        // Cek apakah file koneksi.js berhasil terbaca oleh browser
+        if (typeof dbCloud === 'undefined') {
+            throw new Error("File koneksi.js gagal dimuat! Harap hapus Cache browser (CTRL + SHIFT + R).");
+        }
+
+        const { data: config, error } = await dbCloud.from('app_config').select('config_data').eq('id', 'wms_settings').maybeSingle();
         
+        if (error) throw error; // Lempar error ke blok catch agar loading berhenti
+
         if (config && config.config_data) {
             let d = config.config_data;
             layout = d.layout || {}; headers = d.headers || {}; inventory = d.inventory || {};
@@ -366,12 +345,13 @@ async function loadDataFromCloud() {
             document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-info-circle text-warning me-1"></i> Data Cloud Kosong';
         }
     } catch (e) {
-        document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-times-circle text-danger me-1"></i> Gagal Koneksi Cloud';
-        console.error("Error Load Supabase:", e);
+        document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-times-circle text-danger me-1"></i> Error Koneksi';
+        console.error("Error Load Supabase:", e.message);
+        alert("Gagal terhubung ke database. Pesan error: " + e.message);
     }
     
     if(document.getElementById('defaultAllocName')) document.getElementById('defaultAllocName').value = defaultAllocName;
-    calculateAll();
+    calculateAll(); // Akan selalu jalan agar peta tidak nge-blank
 }
 
 async function syncServer() {
@@ -379,7 +359,9 @@ async function syncServer() {
     if(document.getElementById('defaultAllocName')) defaultAllocName = document.getElementById('defaultAllocName').value.toUpperCase();
     let payload = { layout, headers, inventory, vert, batchDB, defaultAlloc: defaultAllocName, documents, lastDocNum, settings };
     
-    const { error } = await window.dbCloud.from('app_config').upsert({ id: 'wms_settings', config_data: payload });
+    if (typeof dbCloud === 'undefined') return alert("Gagal Simpan: Koneksi Supabase Terputus.");
+
+    const { error } = await dbCloud.from('app_config').upsert({ id: 'wms_settings', config_data: payload });
     if (error) { 
         alert("Gagal Simpan: " + error.message); 
         document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-times-circle text-danger me-1"></i> Gagal Menyimpan';
@@ -390,7 +372,7 @@ async function syncServer() {
 }
 
 // ==========================================
-// 2. FUNGSI BACKUP & RESTORE JSON LOKAL
+// 2. FUNGSI BACKUP & RESTORE
 // ==========================================
 function exportData() { 
     const a = document.createElement('a'); 
@@ -405,55 +387,15 @@ function importData(e) {
         layout=d.layout||{}; headers=d.headers||{}; inventory=d.inventory||{}; vert=d.vert||{}; batchDB=d.batchDB||[]; 
         defaultAllocName=d.defaultAlloc||"PRODUKSI"; documents=d.documents||{}; lastDocNum=d.lastDocNum||0; settings=d.settings||{div_1002:350, div_1003:350}; 
         
-        // Render ulang Map agar pengguna bisa melihat preview data hasil restore sebelum menekan Simpan
         calculateAll();
-        document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-exclamation-triangle text-warning me-1"></i> Belum Disimpan ke Cloud';
-        alert("Data berhasil dipulihkan di layar! Jangan lupa klik 'SIMPAN CLOUD' agar data tersimpan permanen di Supabase.");
+        document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-exclamation-triangle text-warning me-1"></i> Belum Disimpan';
+        alert("File berhasil dibaca! Pastikan klik 'SIMPAN CLOUD' agar data tersimpan di Supabase.");
     }; 
     r.readAsText(e.target.files[0]); 
 }
 
-
 // ==========================================
-// 3. OPERASIONAL GUDANG UTAMA
-// ==========================================
-function formatNum(num) { let val = parseFloat(num); return isNaN(val) ? "0" : val.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
-function debounce(func, wait) { let t; return function(...args) { clearTimeout(t); t = setTimeout(() => func.apply(this, args), wait); }; }
-
-const debouncedSearchMap = debounce(searchMap, 300);
-const debouncedRenderPickList = debounce(renderPickList, 300);
-const debouncedCalculateAnalisa = debounce(calculateAnalisa, 300);
-const debouncedRenderDocList = debounce(renderDocList, 300);
-
-function generateDocNum() { lastDocNum++; return lastDocNum.toString().padStart(6, '0'); }
-
-function startSession() {
-    if(activeSessionDoc) return alert("Selesaikan sesi aktif dulu!");
-    activeSessionDoc = generateDocNum(); activeSessionDetails = [];
-    document.getElementById('sessionPanel').classList.replace('d-none', 'session-panel-active');
-    document.getElementById('sessionDocNum').innerText = activeSessionDoc;
-    updateSessionCount(); updateBtnSesiUI(true);
-}
-
-function endSession() {
-    if(!activeSessionDoc) return;
-    if(activeSessionDetails.length > 0) {
-        let outC = activeSessionDetails.filter(d=>d.type==='OUT').length, inC = activeSessionDetails.filter(d=>d.type==='INB').length, type = "WMS TRANSACTION";
-        if (outC > inC) type = "PICKING / OUT"; else if (inC > outC) type = "INBOUND MANUAL";
-        documents[activeSessionDoc] = { waktu: new Date().toLocaleString('id-ID'), tipe: type, detail: activeSessionDetails };
-        alert(`Sesi ${activeSessionDoc} Selesai! Menyimpan ke Cloud...`); syncServer(); 
-    } else { alert("Sesi dibatalkan (kosong)."); }
-    activeSessionDoc = null; document.getElementById('sessionPanel').classList.replace('session-panel-active', 'd-none'); updateBtnSesiUI(false);
-}
-
-function updateSessionCount() { document.getElementById('sessionCount').innerText = activeSessionDetails.length + " Pergerakan"; }
-function updateBtnSesiUI(active) {
-    const bMap = document.getElementById('btnMulaiSesiMap'), bPick = document.getElementById('btnMulaiSesiPick');
-    [bMap, bPick].forEach(b => { if(b) { b.disabled = active; b.innerHTML = active ? '<i class="fas fa-spinner"></i> SESI AKTIF' : '<i class="fas fa-play"></i> MULAI SESI'; if(active) b.classList.add('btn-sesi-aktif'); else b.classList.remove('btn-sesi-aktif'); } });
-}
-
-// ==========================================
-// 4. RENDER LAPORAN QA / AGING STOCK
+// 3. RENDER AGING STOCK / LAPORAN QA
 // ==========================================
 function renderLaporanStatus() {
     let tExp = 0, tNear = 0, tInsp = 0, tBlock = 0, html = "", dataList = [];
@@ -466,10 +408,8 @@ function renderLaporanStatus() {
             let st = checkExpired(it.batch), qB = parseFloat(it.qBlock)||0, qI = parseFloat(it.qInsp)||0, qU = parseFloat(it.qty)||0, qT = qB+qI+qU;
             if (qT <= 0) return;
             let kritis = false;
-            
             if (st==='expired'){ tExp+=qT; kritis=true; } else if (st==='near_ed'){ tNear+=qT; kritis=true; }
             if (qB > 0){ tBlock+=qB; kritis=true; } if (qI > 0){ tInsp+=qI; kritis=true; }
-            
             if (kritis) dataList.push({sloc, code: it.code, desc: it.desc, batch: it.batch, st, qB, qI, qU});
         });
     });
@@ -481,7 +421,7 @@ function renderLaporanStatus() {
         <div class="col-md-3 col-6"><div class="stat-box shadow-sm border border-dark clickable-widget" onclick="showQADetail('blok')"><div class="stat-lbl text-dark">Blok/Hold</div><div class="stat-val text-dark">${formatNum(tBlock)}</div></div></div>`;
         
     if(dataList.length === 0) { 
-        html = `<tr><td colspan="7" class="text-center py-5 text-success fw-bold">Gudang Aman. Tidak ada material kritis / karantina.</td></tr>`; 
+        html = `<tr><td colspan="7" class="text-center py-5 text-success fw-bold">Gudang Aman. Tidak ada material kritis.</td></tr>`; 
     } else { 
         dataList.forEach(d => {
             let badge = (d.st==='expired') ? '<span class="badge bg-danger">EXPIRED</span>' : (d.st==='near_ed' ? '<span class="badge bg-warning text-dark">NEAR ED</span>' : '<span class="badge bg-success">OK</span>');
@@ -492,16 +432,38 @@ function renderLaporanStatus() {
 }
 
 // ==========================================
-// 5. UTILITY FUNCTIONS & EVENT HANDLERS
+// 4. OPERASIONAL & MAPS LAINNYA
 // ==========================================
+function formatNum(num) { let val = parseFloat(num); return isNaN(val) ? "0" : val.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
+function debounce(func, wait) { let t; return function(...args) { clearTimeout(t); t = setTimeout(() => func.apply(this, args), wait); }; }
+const debouncedSearchMap = debounce(searchMap, 300); const debouncedRenderPickList = debounce(renderPickList, 300); const debouncedCalculateAnalisa = debounce(calculateAnalisa, 300); const debouncedRenderDocList = debounce(renderDocList, 300);
+function generateDocNum() { lastDocNum++; return lastDocNum.toString().padStart(6, '0'); }
+
+function startSession() {
+    if(activeSessionDoc) return alert("Selesaikan sesi aktif dulu!"); activeSessionDoc = generateDocNum(); activeSessionDetails = [];
+    document.getElementById('sessionPanel').classList.replace('d-none', 'session-panel-active'); document.getElementById('sessionDocNum').innerText = activeSessionDoc;
+    updateSessionCount(); updateBtnSesiUI(true);
+}
+function endSession() {
+    if(!activeSessionDoc) return;
+    if(activeSessionDetails.length > 0) {
+        let outC = activeSessionDetails.filter(d=>d.type==='OUT').length, inC = activeSessionDetails.filter(d=>d.type==='INB').length, type = "WMS TRANSACTION";
+        if (outC > inC) type = "PICKING / OUT"; else if (inC > outC) type = "INBOUND MANUAL";
+        documents[activeSessionDoc] = { waktu: new Date().toLocaleString('id-ID'), tipe: type, detail: activeSessionDetails }; alert(`Sesi ${activeSessionDoc} Selesai! Menyimpan ke Cloud...`); syncServer(); 
+    } else { alert("Sesi dibatalkan (kosong)."); }
+    activeSessionDoc = null; document.getElementById('sessionPanel').classList.replace('session-panel-active', 'd-none'); updateBtnSesiUI(false);
+}
+
+function updateSessionCount() { document.getElementById('sessionCount').innerText = activeSessionDetails.length + " Pergerakan"; }
+function updateBtnSesiUI(active) {
+    const bMap = document.getElementById('btnMulaiSesiMap'), bPick = document.getElementById('btnMulaiSesiPick');
+    [bMap, bPick].forEach(b => { if(b) { b.disabled = active; b.innerHTML = active ? '<i class="fas fa-spinner"></i> SESI AKTIF' : '<i class="fas fa-play"></i> MULAI SESI'; if(active) b.classList.add('btn-sesi-aktif'); else b.classList.remove('btn-sesi-aktif'); } });
+}
+
 function openTab(e, name) {
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(name).classList.add("active"); if(e) e.currentTarget.classList.add("active");
-    
-    if(name === 'tabLaporanQA') renderLaporanStatus();
-    if(name === 'tabTrace') renderDocList(true);
-    if(name === 'tabAnalisa') calculateAnalisa();
+    if(name === 'tabLaporanQA') renderLaporanStatus(); if(name === 'tabTrace') renderDocList(true); if(name === 'tabAnalisa') calculateAnalisa();
 }
 
 function parseDate(b) { if(!b || b.length < 6) return new Date(2099,0,1); let d = parseInt(b.substring(0,2)), m = parseInt(b.substring(2,4))-1, y = parseInt("20"+b.substring(4,6)), dt = new Date(y,m,d); return isNaN(dt.getTime()) ? new Date(2099,0,1) : dt; }
@@ -518,33 +480,23 @@ function renderBinModal() {
     if (isBinEditMode) {
         toggleBtn.innerHTML = 'BATAL'; toggleBtn.style.background = 'var(--red)'; actions.style.display = 'flex'; closeBtn.style.display = 'none';
         head.innerHTML = `<tr><th>Kode</th><th>Nama</th><th>Batch</th><th>KG</th><th></th></tr>`;
-        currentBinItems.forEach((it) => { 
-            let q = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0);
-            body.innerHTML += `<tr><td><input class="form-control i-code" value="${it.code||''}" oninput="autoFillMaterial(this)"></td><td><input class="form-control i-desc" value="${it.desc||''}"></td><td><input class="form-control i-batch" value="${it.batch||''}"></td><td><input type="number" class="form-control i-qty" value="${q}"></td><td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()"><i class="fas fa-trash"></i></button></td></tr>`;
-        });
+        currentBinItems.forEach((it) => { let q = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); body.innerHTML += `<tr><td><input class="form-control i-code" value="${it.code||''}" oninput="autoFillMaterial(this)"></td><td><input class="form-control i-desc" value="${it.desc||''}"></td><td><input class="form-control i-batch" value="${it.batch||''}"></td><td><input type="number" class="form-control i-qty" value="${q}"></td><td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()"><i class="fas fa-trash"></i></button></td></tr>`; });
     } else {
         toggleBtn.innerHTML = 'MODE MANUAL'; toggleBtn.style.background = 'var(--orange)'; actions.style.display = 'none'; closeBtn.style.display = 'block';
         head.innerHTML = `<tr><th>Material</th><th>Batch</th><th>Qty (KG)</th><th>Aksi</th></tr>`;
         if (currentBinItems.length === 0) body.innerHTML = `<tr><td colspan="4" class="text-center py-4">Rak Kosong.</td></tr>`;
-        else { currentBinItems.forEach(it => {
-            let qT = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0);
-            body.innerHTML += `<tr><td><b>${it.code}</b><br><small>${it.desc}</small></td><td>${it.batch}</td><td class="fw-bold">${formatNum(qT)}</td><td><button class="btn btn-sm btn-outline-warning" onclick="transferBin('${currentEditSloc}','${it.code}','${it.batch}',${qT})">Pindah</button></td></tr>`;
-        }); }
+        else { currentBinItems.forEach(it => { let qT = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); body.innerHTML += `<tr><td><b>${it.code}</b><br><small>${it.desc}</small></td><td>${it.batch}</td><td class="fw-bold">${formatNum(qT)}</td><td><button class="btn btn-sm btn-outline-warning" onclick="transferBin('${currentEditSloc}','${it.code}','${it.batch}',${qT})">Pindah</button></td></tr>`; }); }
     }
 }
 
 function buildMapSkeleton() {
     const container = document.getElementById('warehouse'); if(!container) return; container.innerHTML = '';
     for (let l = 1; l <= 7; l++) {
-        const sec = document.createElement('div'); sec.className = 'lorong-section'; sec.innerHTML = `<h5 class="fw-bold text-secondary">LORONG H${l}</h5>`;
-        const grid = document.createElement('div'); grid.className = 'bin-grid'; grid.appendChild(createBox('', 'bin-header vert-label'));
+        const sec = document.createElement('div'); sec.className = 'lorong-section'; sec.innerHTML = `<h5 class="fw-bold text-secondary">LORONG H${l}</h5>`; const grid = document.createElement('div'); grid.className = 'bin-grid'; grid.appendChild(createBox('', 'bin-header vert-label'));
         for(let c=1; c<=24; c++) grid.appendChild(createBox(headers[`L${l}-C${c}`] || String.fromCharCode(64+c), 'bin-header', `L${l}-C${c}`, 'header'));
-        for (let r = 1; r <= 10; r++) {
-            grid.appendChild(createBox(vert[`L${l}-V${r}`] || r, 'vert-label', `L${l}-V${r}`, 'vert'));
-            for (let c = 1; c <= 24; c++) {
-                const bK = `L${l}-R${r}-C${c}`, addr = layout[bK] || '', box = document.createElement('div'); box.className = 'bin-box'; box.id = `BOX-${bK}`; box.dataset.addr = addr; 
-                if (editMode) { const i = document.createElement('input'); i.value = addr; i.onchange = (e) => layout[bK] = e.target.value.toUpperCase(); box.appendChild(i); } 
-                else { if(addr) box.classList.add('has-data'); else box.style.opacity = "0.2"; box.innerHTML = `<span class="bin-addr">${addr}</span><b class="bin-qty"></b>`; } grid.appendChild(box);
+        for (let r = 1; r <= 10; r++) { grid.appendChild(createBox(vert[`L${l}-V${r}`] || r, 'vert-label', `L${l}-V${r}`, 'vert'));
+            for (let c = 1; c <= 24; c++) { const bK = `L${l}-R${r}-C${c}`, addr = layout[bK] || '', box = document.createElement('div'); box.className = 'bin-box'; box.id = `BOX-${bK}`; box.dataset.addr = addr; 
+                if (editMode) { const i = document.createElement('input'); i.value = addr; i.onchange = (e) => layout[bK] = e.target.value.toUpperCase(); box.appendChild(i); } else { if(addr) box.classList.add('has-data'); else box.style.opacity = "0.2"; box.innerHTML = `<span class="bin-addr">${addr}</span><b class="bin-qty"></b>`; } grid.appendChild(box);
             }
         } sec.appendChild(grid); container.appendChild(sec);
     }
@@ -553,8 +505,7 @@ function buildMapSkeleton() {
 
 function updateMapData() {
     if (!mapBuilt || editMode) buildMapSkeleton(); if (editMode) return;
-    let bStats = {}; for(let i=1; i<=7; i++) bStats[i] = {f:0, t:0};
-    let oPlt = 0, oDet = { '1002': {kg: 0, plt: 0}, '1003': {kg: 0, plt: 0} }, fC = 0, tC = 0; slocStatsData = {};
+    let bStats = {}; for(let i=1; i<=7; i++) bStats[i] = {f:0, t:0}; let oPlt = 0, oDet = { '1002': {kg: 0, plt: 0}, '1003': {kg: 0, plt: 0} }, fC = 0, tC = 0; slocStatsData = {};
     Object.keys(inventory).forEach(addr => {
         let items = inventory[addr] || [], total = 0, st = 'normal', hM = false, hB = false, dM = new Set();
         items.forEach(it => { let q = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); total += q; dM.add(it.code); if(parseFloat(it.qBlock)>0) hB=true; let mS = checkExpired(it.batch); if(mS==='expired') st='expired'; else if(mS==='near_ed' && st!=='expired') st='near_ed'; if(it.is_manual) hM=true; });
@@ -583,9 +534,7 @@ function toggleFullScreen() { const w = document.getElementById('mapWrapper'); w
 function calculateAll() { buildMaterialMaster(); updateMapData(); renderLaporanStatus(); }
 function filterLegend(type) { if(type==='clear') { updateMapData(); return; } document.querySelectorAll('.bin-box.has-data').forEach(b => { let a = b.dataset.addr, s = slocStatsData[a], match = false; if(s) { if(type==='expired'&&s.st==='expired') match=true; if(type==='near_ed'&&s.st==='near_ed') match=true; if(type==='blok'&&s.hB) match=true; if(type==='full'&&s.total>700) match=true; if(type==='campuran'&&s.dist>1) match=true; if(type==='normal'&&s.total>=400&&s.total<=700) match=true; } b.style.opacity = match ? "1" : "0.2"; if(match) b.classList.add('highlight-find'); else b.classList.remove('highlight-find'); }); }
 
-// ==========================================
-// AUTO-RUN PADA SAAT WEB TERBUKA
-// ==========================================
+// Eksekusi ketika halaman dimuat
 window.onload = loadDataFromCloud;
 </script>
 
