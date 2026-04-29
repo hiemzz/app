@@ -365,7 +365,7 @@ async function syncServer() {
 }
 
 // ==========================================
-// FITUR BACKUP & RESTORE DATA JSON
+// FITUR BACKUP & RESTORE DATA JSON (DENGAN PEMBERSIH IKLAN)
 // ==========================================
 function exportData() { 
     const a = document.createElement('a'); 
@@ -375,22 +375,36 @@ function exportData() {
 }
 
 function importData(e) { 
+    const file = e.target.files[0];
+    if (!file) return;
+
     const r = new FileReader(); 
     r.onload = (ev) => { 
         try {
-            const d = JSON.parse(ev.target.result); 
+            let rawText = ev.target.result;
+            
+            // TRIK AMPUH: Ambil hanya teks JSON (mengabaikan kode iklan InfinityFree)
+            let firstBrace = rawText.indexOf('{');
+            let lastBrace = rawText.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1) {
+                rawText = rawText.substring(firstBrace, lastBrace + 1);
+            }
+            
+            const d = JSON.parse(rawText); 
+            
             layout = d.layout || {}; headers = d.headers || {}; inventory = d.inventory || {}; 
             vert = d.vert || {}; batchDB = d.batchDB || []; defaultAllocName = d.defaultAlloc || "PRODUKSI"; 
             documents = d.documents || {}; lastDocNum = d.lastDocNum || 0; settings = d.settings || {div_1002:350, div_1003:350}; 
             
             calculateAll(); // Update tampilan di layar
-            alert("File JSON berhasil direstore ke layar!\nSistem sedang menyimpan otomatis ke Supabase Cloud...");
+            alert("✅ File JSON berhasil dibaca & dibersihkan dari kode sampah!\n\nSistem sekarang akan menyimpan otomatis ke Supabase Cloud...");
             syncServer();   // Langsung panggil Supabase untuk menyimpan permanen
         } catch(err) {
-            alert("Gagal membaca file: Format JSON tidak valid.");
+            alert("❌ Gagal membaca file!\nFormat JSON benar-benar rusak. Jika ini terus terjadi, gunakan fitur 'PROSES SAP' untuk membuat ulang stok.");
+            console.error("Detail Error:", err);
         }
     }; 
-    if(e.target.files.length > 0) r.readAsText(e.target.files[0]); 
+    r.readAsText(file); 
 }
 
 async function deleteDocument(docId) {
@@ -621,7 +635,7 @@ function performLivePick(btn, sloc, code, batch, desc, maxQty) {
     if(sIdx > -1) { sItems[sIdx].qty = parseFloat(sItems[sIdx].qty) - pickQty; if(sItems[sIdx].qty <= 0) sItems.splice(sIdx, 1); if(sItems.length === 0) delete inventory[sloc]; activeSessionDetails.push({mat: code, desc: desc, batch: batch, qty: pickQty, source: sloc, target: "LUAR (PICKED)", type: "OUT"}); updateSessionCount(); btn.outerHTML = `<div class="badge bg-success p-2 shadow-sm text-center">DIAMBIL (${formatNum(pickQty)} KG)</div>`; updateMapData(); }
 }
 
-// Eksekusi ketika halaman dimuat
+// Eksekusi saat halaman terbuka
 window.onload = loadDataFromCloud;
 </script>
 
