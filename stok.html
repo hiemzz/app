@@ -155,7 +155,7 @@
                 <button class="btn-wp" style="background:#10b981;" onclick="exportInventoryToExcel()"><i class="fas fa-file-excel"></i> EXCEL</button>
                 <button class="btn-wp" style="background:var(--dark);" onclick="exportData()"><i class="fas fa-box"></i> BACKUP</button>
                 <button class="btn-wp" style="background:#64748b;" onclick="document.getElementById('fileInput').click()"><i class="fas fa-upload"></i> RESTORE</button>
-                <input type="file" id="fileInput" style="display:none" onchange="importData(event)">
+                <input type="file" id="fileInput" style="display:none" accept=".json" onchange="importData(event)">
             </div>
             <div class="row g-2">
                 <div class="col-md-6"><input type="text" id="matSearch" list="listMaterialMaster" class="form-control fw-bold border-primary" placeholder="Cari Kode / Nama Material / Batch..." oninput="debouncedSearchMap()"></div>
@@ -318,12 +318,15 @@ let settings = { div_1002: 350, div_1003: 350 };
 let editMode = false, recommendedSlocs = [], currentEditSloc = "", isBinEditMode = false, currentBinItems = [], slocStatsData = {}; 
 const TODAY = new Date();
 
-// 1. SUPABASE SYNC
+// ==========================================
+// SINKRONISASI KE SUPABASE
+// ==========================================
 async function loadDataFromCloud() {
     try {
         if (typeof dbCloud === 'undefined') throw new Error("koneksi.js gagal dimuat.");
         const { data: config, error } = await dbCloud.from('app_config').select('config_data').eq('id', 'wms_settings').maybeSingle();
         if (error) throw error;
+        
         if (config && config.config_data) {
             let d = config.config_data;
             layout = d.layout || {}; headers = d.headers || {}; inventory = d.inventory || {};
@@ -337,6 +340,7 @@ async function loadDataFromCloud() {
         document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-times-circle text-danger me-1"></i> Error Koneksi';
         console.error(e.message);
     }
+    
     if(document.getElementById('defaultAllocName')) document.getElementById('defaultAllocName').value = defaultAllocName;
     calculateAll();
 }
@@ -344,23 +348,79 @@ async function loadDataFromCloud() {
 async function syncServer() {
     document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-spinner fa-spin text-primary me-1"></i> Menyimpan...';
     if(document.getElementById('defaultAllocName')) defaultAllocName = document.getElementById('defaultAllocName').value.toUpperCase();
+    
     let payload = { layout, headers, inventory, vert, batchDB, defaultAlloc: defaultAllocName, documents, lastDocNum, settings };
+    
     if (typeof dbCloud === 'undefined') return alert("Gagal Simpan: Koneksi Supabase Terputus.");
+    
     const { error } = await dbCloud.from('app_config').upsert({ id: 'wms_settings', config_data: payload });
-    if (error) { alert("Gagal Simpan: " + error.message); document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-times-circle text-danger me-1"></i> Gagal Menyimpan'; } 
-    else { alert("Data Berhasil Disinkronkan ke Cloud!"); location.reload(); }
+    
+    if (error) { 
+        alert("Gagal Simpan: " + error.message); 
+        document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-times-circle text-danger me-1"></i> Gagal Menyimpan'; 
+    } else { 
+        alert("Data Berhasil Disinkronkan ke Cloud!"); 
+        location.reload(); 
+    }
 }
 
-// 2. BACKUP & RESTORE
-function exportData() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify({layout, headers, inventory, vert, batchDB, defaultAlloc: defaultAllocName, documents, lastDocNum, settings})], {type:"application/json"})); a.download="warehouse_backup.json"; a.click(); }
-function importData(e) { const r = new FileReader(); r.onload = (ev) => { const d = JSON.parse(ev.target.result); layout=d.layout||{}; headers=d.headers||{}; inventory=d.inventory||{}; vert=d.vert||{}; batchDB=d.batchDB||[]; defaultAllocName=d.defaultAlloc||"PRODUKSI"; documents=d.documents||{}; lastDocNum=d.lastDocNum||0; settings=d.settings||{div_1002:350, div_1003:350}; calculateAll(); document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-exclamation-triangle text-warning me-1"></i> Belum Disimpan'; alert("File berhasil dibaca! Klik 'SIMPAN CLOUD' agar data tersimpan di Supabase."); }; r.readAsText(e.target.files[0]); }
+// ==========================================
+// FITUR BACKUP & RESTORE DATA JSON
+// ==========================================
+function exportData() { 
+    const a = document.createElement('a'); 
+    a.href = URL.createObjectURL(new Blob([JSON.stringify({layout, headers, inventory, vert, batchDB, defaultAlloc: defaultAllocName, documents, lastDocNum, settings})], {type:"application/json"})); 
+    a.download = "warehouse_backup.json"; 
+    a.click(); 
+}
 
-// 3. EVENT LISTENER & UTILITY
+function importData(e) { 
+    const r = new FileReader(); 
+    r.onload = (ev) => { 
+        try {
+            const d = JSON.parse(ev.target.result); 
+            layout = d.layout || {}; headers = d.headers || {}; inventory = d.inventory || {}; 
+            vert = d.vert || {}; batchDB = d.batchDB || []; defaultAllocName = d.defaultAlloc || "PRODUKSI"; 
+            documents = d.documents || {}; lastDocNum = d.lastDocNum || 0; settings = d.settings || {div_1002:350, div_1003:350}; 
+            
+            calculateAll(); // Update tampilan di layar
+            alert("File JSON berhasil direstore ke layar!\nSistem sedang menyimpan otomatis ke Supabase Cloud...");
+            syncServer();   // Langsung panggil Supabase untuk menyimpan permanen
+        } catch(err) {
+            alert("Gagal membaca file: Format JSON tidak valid.");
+        }
+    }; 
+    if(e.target.files.length > 0) r.readAsText(e.target.files[0]); 
+}
+
+async function deleteDocument(docId) {
+    if(!confirm(`HAPUS PERMANEN DOKUMEN ARSIP ${docId}?\n\nCatatan: Ini tidak akan mengembalikan fisik barang di rak, hanya menghapus arsip.`)) return;
+    delete documents[docId]; 
+    
+    document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-spinner fa-spin text-primary me-1"></i> Menghapus...';
+    let payload = { layout, headers, inventory, vert, batchDB, defaultAlloc: defaultAllocName, documents, lastDocNum, settings };
+    
+    const { error } = await dbCloud.from('app_config').upsert({ id: 'wms_settings', config_data: payload });
+    
+    if(error) { 
+        alert("Gagal Hapus: " + error.message); 
+    } else {
+        alert("Dokumen " + docId + " berhasil dihapus!");
+        renderDocList(true); 
+        document.getElementById('docDetailBody').innerHTML = '<div class="text-center text-muted py-5">Pilih dokumen untuk melihat rincian.</div>';
+        document.getElementById('docDetailTitle').innerHTML = 'Detail Dokumen';
+        document.getElementById('docActionArea').innerHTML = '';
+        document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-check-circle text-success me-1"></i> Data Tersinkron';
+    }
+}
+
+// ==========================================
+// UTILITY & HELPER
+// ==========================================
 function formatNum(num) { let val = parseFloat(num); return isNaN(val) ? "0" : val.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
 function debounce(func, wait) { let t; return function(...args) { clearTimeout(t); t = setTimeout(() => func.apply(this, args), wait); }; }
 function generateDocNum() { lastDocNum++; return lastDocNum.toString().padStart(6, '0'); }
 
-// --- BAGIAN YANG KEMARIN HILANG (Search, Process SAP, Picking) ---
 function searchMap() { 
     const q = document.getElementById('matSearch').value.toUpperCase(); document.querySelectorAll('.bin-box.has-data').forEach(b => { b.classList.remove('highlight-find'); b.style.opacity = "1"; }); if(!q) return; 
     document.querySelectorAll('.bin-box.has-data').forEach(b => {
@@ -370,6 +430,7 @@ function searchMap() {
         if(match) { b.classList.add('highlight-find'); b.style.opacity = "1"; } else { b.style.opacity = "0.2"; }
     });
 }
+
 function processSAP() {
     const raw = document.getElementById('excelInput').value.trim(); if(!raw) return; const lines = raw.split("\n"); const h = lines[0].toLowerCase().split("\t").map(x => x.trim());
     let mI = h.findIndex(x => x.includes('material') && !x.includes('desc')); let dI = h.findIndex(x => x.includes('desc')); let sI = h.findIndex(x => x.includes('location') || x.includes('sloc') || x.includes('bin')); let bI = h.indexOf('batch'); let uI = h.findIndex(x => x.includes('unrestricted') || x.includes('qty')); let iI = h.findIndex(x => x.includes('insp')); let blI = h.findIndex(x => x.includes('block')); let startIndex = 1; if(mI === -1 && uI === -1) { startIndex = 0; mI=0; dI=1; sI=2; bI=3; uI=4; iI=5; blI=6; } else { if(mI===-1) mI=0; if(dI===-1) dI=1; if(sI===-1) sI=2; if(bI===-1) bI=3; if(uI===-1) uI=4; if(iI===-1) iI=5; if(blI===-1) blI=6; }
@@ -380,6 +441,7 @@ function processSAP() {
     }
     if(rowCount > 0) { inventory = newInv; calculateAll(); alert(`✅ Berhasil memproses ${rowCount} baris data.\nIndikator Edit Manual dibersihkan.`); document.getElementById('excelInput').value = ''; } else alert("❌ Gagal memproses! Format tidak dikenali.");
 }
+
 function renderPickList() {
     const matQ = document.getElementById('pickSearch').value.toUpperCase(); const targetQty = parseFloat(document.getElementById('targetInputQty').value) || 0; const allocQ = document.getElementById('allocFilter').value.toUpperCase(); const body = document.getElementById('pickBody');
     if(!matQ && !allocQ) { body.innerHTML = ""; recommendedSlocs = []; updateMapData(); return; }
@@ -397,7 +459,6 @@ const debouncedSearchMap = debounce(searchMap, 300);
 const debouncedRenderPickList = debounce(renderPickList, 300);
 const debouncedCalculateAnalisa = debounce(calculateAnalisa, 300);
 const debouncedRenderDocList = debounce(renderDocList, 300);
-// --------------------------------------------------------------
 
 function startSession() {
     if(activeSessionDoc) return alert("Selesaikan sesi aktif dulu!");
@@ -517,7 +578,6 @@ function renderDocDetail(docId) {
     let html = `<div class="d-flex justify-content-between mb-3 border-bottom pb-2"><div><small class="text-muted d-block">Tipe Transaksi</small><b class="text-dark">${doc.tipe}</b></div><div class="text-end"><small class="text-muted d-block">Waktu Eksekusi</small><b class="text-dark">${doc.waktu}</b></div></div><table class="table table-sm table-bordered bg-white text-center align-middle"><thead class="table-light text-muted" style="font-size:11px;"><tr><th>Tipe</th><th>Kode</th><th>Deskripsi</th><th>Batch</th><th>Qty (KG)</th><th>Asal</th><th>Tujuan</th></tr></thead><tbody style="font-size:12px;">`;
     doc.detail.forEach(d => { let badgeType = d.type === 'INB' ? 'bg-success' : (d.type === 'OUT' ? 'bg-danger' : 'bg-warning text-dark'); html += `<tr><td><span class="badge ${badgeType}">${d.type || '-'}</span></td><td class="fw-bold">${d.mat}</td><td>${d.desc}</td><td>${d.batch}</td><td class="fw-bold text-primary">${formatNum(d.qty)}</td><td><span class="badge bg-secondary">${d.source}</span></td><td><span class="badge bg-primary">${d.target}</span></td></tr>`; }); document.getElementById('docDetailBody').innerHTML = html + `</tbody></table>`;
 }
-async function deleteDocument(docId) { if(!confirm("Hapus dokumen " + docId + "?")) return; delete documents[docId]; syncServer(); renderDocList(true); }
 
 function calculateAnalisa() { updateBatchAnalysis(); renderTop10(); }
 function updateBatchAnalysis() {
@@ -536,18 +596,11 @@ function exportInventoryToExcel() { let data = [["Lokasi / Rak", "Kode Material"
 function exportLaporanQA() { const t = document.getElementById('tableQAExcel'); if(!t || t.innerText.includes('Gudang aman')) return alert("Data Kosong!"); let wb = XLSX.utils.table_to_book(t, {sheet:"Laporan QA"}); XLSX.writeFile(wb, `Laporan_Karantina_ED_${new Date().toISOString().slice(0,10)}.xlsx`); }
 function exportSingleDoc(docId) { let doc = documents[docId]; if(!doc) return; let data = [["No Dokumen", "Waktu Transaksi", "Tipe Transaksi", "Aksi", "Kode Material", "Deskripsi", "Batch", "Qty (KG)", "Lokasi Asal", "Lokasi Tujuan"]]; doc.detail.forEach(d => { data.push(["DOC-" + docId, doc.waktu, doc.tipe, d.type || "-", d.mat, d.desc, d.batch, d.qty, d.source || "-", d.target || "-"]); }); let ws = XLSX.utils.aoa_to_sheet(data); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Detail Dokumen"); XLSX.writeFile(wb, "Rincian_Dokumen_" + docId + ".xlsx"); }
 
-function searchMultiBin() {
-    const input = document.getElementById('multiBinInput').value.toUpperCase(); if(!input.trim()) return; const targets = input.split(/[\s,]+/).filter(x => x); let html = `<table class="table table-bordered text-center"><thead class="bg-light"><tr><th>Alamat Rak (SLOC)</th><th>Status</th><th>Total Qty (KG)</th><th>Rincian Material</th></tr></thead><tbody>`;
-    targets.forEach(t => { let items = inventory[t]; if(!items || items.length === 0) { html += `<tr><td class="fw-bold">${t}</td><td><span class="badge bg-secondary">KOSONG</span></td><td>-</td><td class="text-muted">Tidak ada stok</td></tr>`; } else { let total = 0; let detailHtml = ""; items.forEach(it => { let q = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); total += q; detailHtml += `<div class="mb-1 border-bottom pb-1"><b>${it.code}</b> (${it.batch}): <span class="text-primary">${formatNum(q)} KG</span></div>`; }); html += `<tr><td class="fw-bold">${t}</td><td><span class="badge bg-success">TERISI</span></td><td class="fw-bold fs-5">${formatNum(total)}</td><td class="text-start" style="font-size:11px;">${detailHtml}</td></tr>`; } });
-    document.getElementById('multiBinResult').innerHTML = html + "</tbody></table>";
-}
-
 function openDivisorModal(key) { document.getElementById('divSlocKey').value = key; document.getElementById('divSlocLabel').value = 'OPEN ' + key; document.getElementById('divValueInput').value = settings[`div_${key}`] || 350; document.getElementById('divisorModal').style.display = 'block'; }
 function closeDivisorModal() { document.getElementById('divisorModal').style.display = 'none'; }
 function saveDivisor() { let key = document.getElementById('divSlocKey').value; let val = parseFloat(document.getElementById('divValueInput').value); if (!val || val <= 0) return alert("Nilai harus lebih besar dari 0!"); settings[`div_${key}`] = val; closeDivisorModal(); updateMapData(); syncServer(); }
 function showQADetail(cat) { let title = ""; let html = ""; if(cat === 'expired') title = "<i class='fas fa-exclamation-triangle text-danger me-2'></i> Detail Stok Expired"; if(cat === 'near_ed') title = "<i class='fas fa-clock text-warning text-dark me-2'></i> Detail Stok Near ED"; if(cat === 'insp') title = "<i class='fas fa-search text-info me-2'></i> Detail Quality Inspection"; if(cat === 'blok') title = "<i class='fas fa-ban text-dark me-2'></i> Detail Blok / Hold"; document.getElementById('qaModalTitle').innerHTML = title; Object.keys(inventory).forEach(sloc => { inventory[sloc].forEach(it => { let st = checkExpired(it.batch); let qBlock = parseFloat(it.qBlock) || 0; let qInsp = parseFloat(it.qInsp) || 0; let qUnre = parseFloat(it.qty) || 0; let qTot = qBlock + qInsp + qUnre; if(qTot <= 0) return; let show = false; let qtyToShow = 0; if(cat === 'expired' && st === 'expired') { show = true; qtyToShow = qTot; } if(cat === 'near_ed' && st === 'near_ed') { show = true; qtyToShow = qTot; } if(cat === 'insp' && qInsp > 0) { show = true; qtyToShow = qInsp; } if(cat === 'blok' && qBlock > 0) { show = true; qtyToShow = qBlock; } if(show) { html += `<tr><td class="fw-bold text-primary align-middle">${sloc}</td><td class="text-start"><b>${it.code}</b><br><small class="text-muted">${it.desc}</small></td><td class="align-middle">${it.batch}</td><td class="fw-bold text-dark fs-6 align-middle">${formatNum(qtyToShow)}</td></tr>`; } }); }); if(!html) html = `<tr><td colspan="4" class="text-center py-5 text-muted"><i class="fas fa-box-open fs-3 opacity-50 mb-3 d-block"></i>Tidak ada material pada kategori ini.</td></tr>`; document.getElementById('qaModalBody').innerHTML = html; document.getElementById('qaModal').style.display = 'block'; }
 function autoFillMaterial(input) { let code = input.value.toUpperCase(); let descInput = input.closest('tr').querySelector('.i-desc'); let found = null; Object.values(inventory).flat().forEach(it => { if(it.code === code) found = it.desc; }); if(found) { descInput.value = found; descInput.classList.add('flash-green'); setTimeout(() => descInput.classList.remove('flash-green'), 1000); } }
-
 function getRowsData() { let rows = document.querySelectorAll('#binModalBody tr'), temp = []; rows.forEach(r => { if(r.querySelector('.i-code')) { temp.push({ code: r.querySelector('.i-code').value.trim(), desc: r.querySelector('.i-desc').value.trim(), batch: r.querySelector('.i-batch').value.trim().toUpperCase(), qty: parseFloat(r.querySelector('.i-qty').value) || 0, qInsp: 0, qBlock: 0, is_manual: true }); } }); return temp; }
 function addBinRow() { currentBinItems = getRowsData(); currentBinItems.push({code:'', desc:'', batch:'', qty:0, qInsp:0, qBlock:0, is_manual:true}); renderBinModal(); }
 function saveBinData() { if(!activeSessionDoc) { alert("⚠️ DITOLAK!\nKlik tombol MULAI SESI di menu atas terlebih dahulu."); return; } let newItems = getRowsData().filter(it => it.code !== ""); if (newItems.length > 0) { newItems.forEach(it => { activeSessionDetails.push({mat: it.code, desc: it.desc, batch: it.batch, qty: it.qty, source: "LUAR / ADJ", target: currentEditSloc, type: "INB"}); }); updateSessionCount(); inventory[currentEditSloc] = newItems; } else { delete inventory[currentEditSloc]; } updateMapData(); calculateAll(); closeBinModal(); }
@@ -568,7 +621,7 @@ function performLivePick(btn, sloc, code, batch, desc, maxQty) {
     if(sIdx > -1) { sItems[sIdx].qty = parseFloat(sItems[sIdx].qty) - pickQty; if(sItems[sIdx].qty <= 0) sItems.splice(sIdx, 1); if(sItems.length === 0) delete inventory[sloc]; activeSessionDetails.push({mat: code, desc: desc, batch: batch, qty: pickQty, source: sloc, target: "LUAR (PICKED)", type: "OUT"}); updateSessionCount(); btn.outerHTML = `<div class="badge bg-success p-2 shadow-sm text-center">DIAMBIL (${formatNum(pickQty)} KG)</div>`; updateMapData(); }
 }
 
-// Eksekusi saat halaman terbuka
+// Eksekusi ketika halaman dimuat
 window.onload = loadDataFromCloud;
 </script>
 
