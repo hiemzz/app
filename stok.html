@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse RPA Cikupa - Stok & Peta</title>
+    <title>Warehouse RPA Cikupa - Stok & Peta Cloud</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -13,49 +13,37 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
-        /* ========================================= */
-        /* CSS 100% ASLI DARI STOK.PHP KAMU          */
-        /* ========================================= */
         :root { 
             --red: #ffadad; --green: #dcfce7; --orange: #ffd6a5; --blue: #a0c4ff;      
             --dark: #4a4e69; --purple: #bdb2ff; --expired: #f1f5f9; --warning: #ffe6a7;   
             --bg-main: #f8fafc; --text-dark: #334155; --text-red: #e63946;  
             --alert-bg: #fff1f2; --text-green: #166534; 
-            --box-s: 58px; 
-            --box-f: 12px;
+            --box-s: 58px; --box-f: 12px; --japfa-green: #39b54a;
         }
-        
-        body { background-color: var(--bg-main); }
-        .warehouse-pro-container { font-family: 'Inter', sans-serif; background: var(--bg-main); color: var(--text-dark); padding: 20px; padding-bottom: 30px; font-size: 13px; }
-        
+        body { background-color: var(--bg-main); font-family: 'Inter', sans-serif; color: var(--text-dark); }
+        .warehouse-pro-container { padding: 20px; padding-bottom: 30px; font-size: 13px; max-width: 1400px; margin: 0 auto; }
         .panel, .summary-card, .lorong-section { background: white; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
         .panel { padding: 20px; margin-bottom: 18px; }
         .lorong-section { padding: 15px; margin-bottom: 20px; overflow-x: auto; }
-        
         .summary-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 18px; }
         .summary-card { padding: 15px; display: flex; flex-direction: column; justify-content: space-between; border-top: 5px solid var(--blue); transition: all 0.2s ease;}
         .total-card { grid-column: span 2; color: #0369a1; border-top-color: #7dd3fc; }
         .summary-val { font-size: 24px; font-weight: 900; text-align: center; margin-top: 5px; }
         .summary-label { font-size: 11px; font-weight: 800; text-align: center; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px; }
-
         .clickable-widget { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative; }
         .clickable-widget:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; filter: brightness(0.97); }
-
         .legend-panel { background: white; padding: 15px; border-radius: 12px; margin-bottom: 18px; display: flex; gap: 10px; flex-wrap: wrap; font-size: 13px; border: 1px solid #e2e8f0; }
         .legend-item { display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; padding: 6px 10px; border-radius: 8px; transition: all 0.2s; border: 1px solid transparent; }
         .legend-item:hover { background: #f1f5f9; border-color: #cbd5e1; transform: translateY(-2px); }
         .l-box { width: 18px; height: 18px; border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); }
-
         .bin-grid { display: grid; grid-template-columns: repeat(25, var(--box-s)); gap: 5px; width: fit-content; margin-top: 10px; }
         .bin-box { width: var(--box-s); height: var(--box-s); background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Consolas', monospace; font-size: var(--box-f); overflow: hidden; position: relative; transition: all 0.2s ease;}
         .bin-box.has-data { cursor: pointer; }
         .bin-header, .vert-label { background: var(--dark) !important; color: white !important; font-weight: bold !important; cursor: default; border: none; font-size: calc(var(--box-f) - 1px);}
         .bin-addr { font-weight: 900; color: #1e293b; font-size: calc(var(--box-f) - 2px); margin-bottom: 2px; pointer-events: none;}
         .bin-box b { font-size: calc(var(--box-f) + 1px); pointer-events: none;}
-
         .highlight-find, .highlight-pick { outline: 4px solid #1e293b !important; box-shadow: 0 0 15px rgba(30, 41, 59, 0.7) !important; z-index: 100 !important; animation: pBlink 0.6s ease-in-out infinite alternate !important; }
         @keyframes pBlink { 0% { transform: scale(1.1); filter: brightness(1.2); opacity: 1; } 100% { transform: scale(0.9); filter: brightness(0.6); opacity: 0.6; } }
-
         .text-expired { color: var(--text-red) !important; font-weight: 900 !important; }
         .is-expired { background: var(--expired) !important; border: 2px solid var(--text-red) !important; }
         .occ-blok { background: #fee2e2 !important; color: #991b1b !important; border: 2px dashed #dc2626 !important; }
@@ -64,49 +52,38 @@
         .occ-purple { background: var(--purple) !important; color: #4c1d95 !important; } 
         .occ-green { background: #bbf7d0 !important; color: #14532d !important; }
         .occ-orange { background: var(--orange) !important; color: #7c2d12 !important; }
-
         .row-pick { background-color: #dcfce7 !important; color: #166534 !important; }
         .box-manual { border: 2px dashed #0ea5e9 !important; position: relative; }
         .manual-dot { position: absolute; top: 4px; right: 4px; width: 10px; height: 10px; background: #0ea5e9; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(14,165,233,0.5); pointer-events: none;}
-
         #mapWrapper { transition: all 0.3s ease; }
         #mapWrapper.fullscreen-mode { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100000; background: #f1f5f9; padding: 20px; overflow: auto; }
         .map-toolbar { position: relative; z-index: 100001; transition: all 0.3s ease; }
         #mapWrapper.fullscreen-mode .map-toolbar { position: sticky; top: -20px; margin-top: -20px; border-radius: 0 0 12px 12px; background: rgba(255, 255, 255, 0.95) !important; backdrop-filter: blur(10px); box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important; }
-
         .tabs-wp { display: flex; gap: 8px; margin-bottom: 18px; background: #e2e8f0; padding: 8px; border-radius: 12px; flex-wrap: wrap; }
         .tab-btn { padding: 12px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; background: transparent; flex: 1; color: #64748b; font-size: 13px; transition: background-color 0.2s; }
         .tab-btn.active { background: white; color: #1e293b; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        
-        .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 15px; }
+        .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 15px; }
         .btn-wp { width: 100%; padding: 12px 10px; border: none; border-radius: 10px; cursor: pointer; font-weight: 800; font-size: 11px; color: white; transition: transform 0.15s ease, filter 0.15s ease; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); letter-spacing: 0.3px; }
         .btn-wp:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.08); }
         .btn-wp:disabled { opacity: 0.7; cursor: not-allowed; }
-        
         table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; border-radius: 8px; overflow: hidden; }
         th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: middle;}
         th { background: #f8fafc; color: #475569; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #cbd5e1; }
-        
         .modal-wp { display: none; position: fixed; z-index: 100002; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); }
         .modal-content-wp { background: white; margin: 5% auto; padding: 25px; width: 95%; max-width: 900px; border-radius: 16px; max-height: 85vh; overflow-y: auto;}
-        
         .status-wrapper { display: flex; flex-wrap: wrap; gap: 5px; }
         .badge-status { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; }
         .bg-alloc { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
-
         .stat-box { text-align: center; padding: 15px 10px; border-radius: 15px; }
         .stat-val { font-size: 1.8rem; font-weight: 900; margin-top: 5px; line-height: 1; }
         .stat-lbl { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-
         input.form-control, textarea.form-control, select.form-select { font-size: 13px; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; }
         input.form-control:focus, textarea.form-control:focus { border-color: var(--blue); outline: none; box-shadow: 0 0 0 3px rgba(160, 196, 255, 0.2); }
-        
         .doc-item { cursor: pointer; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; transition: 0.2s; }
         .doc-item:hover { background: #f8fafc; border-color: var(--blue); }
         .doc-item.active { background: #e0f2fe; border-color: #0288d1; border-left: 5px solid #0288d1; }
-        
         @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .session-panel-active { animation: slideDown 0.3s ease-out forwards; background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%); border: 1px solid #bae6fd; border-radius: 12px; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(2, 136, 209, 0.15); }
         .btn-sesi-aktif { animation: pBlink 1.5s infinite alternate !important; background: #64748b !important; pointer-events: none; }
@@ -119,55 +96,51 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-4 mb-4 border-bottom border-warning border-4">
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="#"><span style="font-family: 'Playfair Display'; font-weight: 900;">JAPFA</span> <span style="font-family: 'Dancing Script'; color: #39b54a;">Food</span></a>
-        <a href="index.html" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</a>
+        <a href="index.html" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left"></i> Beranda</a>
     </div>
 </nav>
 
-<div class="warehouse-pro-container mx-auto" style="max-width: 1400px;">
+<div class="warehouse-pro-container">
 
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <h4 class="fw-bold text-dark m-0" style="color: #39b54a !important;">
-            <i class="fas fa-cubes me-2"></i> Peta Stok Gudang
-        </h4>
-        <div class="badge bg-white text-dark border border-secondary shadow-sm px-3 py-2 rounded-pill" style="font-size: 0.8rem;" id="cloudStatus">
-            <i class="fas fa-sync-alt text-primary me-1"></i> Mengambil data dari Cloud...
+        <h4 class="fw-bold m-0" style="color: var(--japfa-green) !important;"><i class="fas fa-cubes me-2"></i> Peta Stok Gudang</h4>
+        <div class="badge bg-white text-dark border border-secondary shadow-sm px-3 py-2 rounded-pill" id="cloudStatus">
+            <i class="fas fa-spinner fa-spin text-primary me-1"></i> Menghubungkan ke Cloud...
         </div>
     </div>
 
     <div id="sessionPanel" class="d-none">
         <div>
             <div class="d-flex align-items-center gap-2 mb-1">
-                <span class="spinner-grow spinner-grow-sm text-primary" role="status"></span>
-                <span class="fw-bold text-primary text-uppercase" style="font-size: 0.8rem; letter-spacing: 1px;">Sesi Transaksi Aktif</span>
+                <span class="spinner-grow spinner-grow-sm text-primary"></span>
+                <span class="fw-bold text-primary text-uppercase" style="font-size: 0.8rem;">Sesi Transaksi Aktif</span>
             </div>
             <h5 class="fw-bold text-dark m-0" id="sessionDocNum">000000</h5>
             <span class="badge bg-primary mt-2" id="sessionCount">0 Pergerakan</span>
         </div>
-        <button class="btn btn-success fw-bold shadow-sm px-4 py-2" style="border-radius: 10px;" onclick="endSession()">
-            <i class="fas fa-check-circle me-2"></i> SELESAI & SIMPAN
-        </button>
+        <button class="btn btn-success fw-bold shadow-sm px-4 py-2" style="border-radius: 10px;" onclick="endSession()"><i class="fas fa-check-circle me-2"></i> SELESAI & SIMPAN</button>
     </div>
 
     <div class="summary-container" id="dashSummary"></div>
 
     <div class="alert alert-info border-0 shadow-sm py-2 mb-2 d-flex align-items-center" id="alertMapTips">
-        <i class="fas fa-hand-pointer me-2"></i> <small><b>TIPS:</b> Klik pada Keterangan (Legend) di bawah ini untuk mencari dan menyorot status rak secara otomatis!</small>
+        <i class="fas fa-hand-pointer me-2"></i> <small><b>TIPS:</b> Klik Legend di bawah untuk sorot status rak secara otomatis!</small>
     </div>
 
     <div class="legend-panel shadow-sm" id="legendMap">
-        <div class="legend-item" onclick="filterLegend('full')" title="Cari Rak Penuh"><div class="l-box" style="background: var(--red);"></div> Penuh (>700)</div>
-        <div class="legend-item" onclick="filterLegend('campuran')" title="Cari Rak Campuran"><div class="l-box" style="background: var(--purple);"></div> Campuran</div>
-        <div class="legend-item" onclick="filterLegend('expired')" title="Cari Stok Expired"><div class="l-box" style="background: var(--expired); border: 2px solid var(--text-red);"></div> Expired</div>
-        <div class="legend-item" onclick="filterLegend('near_ed')" title="Cari Stok Near ED"><div class="l-box" style="background: var(--warning); border: 2px solid #eab308;"></div> Near ED (&le; 90 Hr)</div>
-        <div class="legend-item" onclick="filterLegend('blok')" title="Cari Stok yang di Blok/Hold"><div class="l-box" style="background: #fee2e2; border: 2px dashed #dc2626;"></div> Stok Blok / Hold</div>
-        <div class="legend-item" onclick="filterLegend('normal')" title="Cari Rak Normal"><div class="l-box" style="background: #bbf7d0;"></div> Normal (400-700)</div>
-        <div class="legend-item text-primary" onclick="filterLegend('clear')" title="Tampilkan Semua Rak"><i class="fas fa-sync-alt me-1"></i> Reset Peta</div>
+        <div class="legend-item" onclick="filterLegend('full')"><div class="l-box" style="background: var(--red);"></div> Penuh (>700)</div>
+        <div class="legend-item" onclick="filterLegend('campuran')"><div class="l-box" style="background: var(--purple);"></div> Campuran</div>
+        <div class="legend-item" onclick="filterLegend('expired')"><div class="l-box" style="background: var(--expired); border: 2px solid var(--text-red);"></div> Expired</div>
+        <div class="legend-item" onclick="filterLegend('near_ed')"><div class="l-box" style="background: var(--warning); border: 2px solid #eab308;"></div> Near ED (&le; 90 Hr)</div>
+        <div class="legend-item" onclick="filterLegend('blok')"><div class="l-box" style="background: #fee2e2; border: 2px dashed #dc2626;"></div> Blok / Hold</div>
+        <div class="legend-item" onclick="filterLegend('normal')"><div class="l-box" style="background: #bbf7d0;"></div> Normal (400-700)</div>
+        <div class="legend-item text-primary" onclick="filterLegend('clear')"><i class="fas fa-sync-alt me-1"></i> Reset</div>
     </div>
 
     <div class="tabs-wp shadow-sm">
         <button class="tab-btn active" onclick="openTab(event, 'tabMap')"><i class="fas fa-map-marked-alt me-1"></i> MAP</button>
         <button class="tab-btn" onclick="openTab(event, 'tabPicking')"><i class="fas fa-clipboard-list me-1"></i> PICKING</button>
-        <button class="tab-btn" onclick="openTab(event, 'tabTrace')" style="color: #0369a1;"><i class="fas fa-file-invoice me-1"></i> TRACING DOC</button>
+        <button class="tab-btn" onclick="openTab(event, 'tabTrace')"><i class="fas fa-file-invoice me-1"></i> TRACING</button>
         <button class="tab-btn" onclick="openTab(event, 'tabMultiBin')"><i class="fas fa-search me-1"></i> MULTI-BIN</button>
         <button class="tab-btn" onclick="openTab(event, 'tabAnalisa')"><i class="fas fa-chart-pie me-1"></i> ANALISA</button>
         <button class="tab-btn text-danger fw-bold" onclick="openTab(event, 'tabLaporanQA')"><i class="fas fa-shield-alt me-1"></i> Aging Stock</button>
@@ -178,28 +151,26 @@
             <div class="action-grid">
                 <button class="btn-wp bg-primary" id="btnMulaiSesiMap" onclick="startSession()"><i class="fas fa-play"></i> <span>MULAI SESI</span></button>
                 <button class="btn-wp" style="background:var(--orange); color:#7c2d12;" onclick="toggleMode()"><i class="fas fa-cog"></i> <span>EDIT RAK</span></button>
-                <button class="btn-wp" style="background:var(--blue); color:#1e3a8a;" onclick="syncServer()"><i class="fas fa-save"></i> <span>SIMPAN SERVER</span></button>
+                <button class="btn-wp" style="background:var(--blue);" onclick="syncServer()"><i class="fas fa-save"></i> <span>SIMPAN CLOUD</span></button>
                 <button class="btn-wp" style="background:var(--green); color:#14532d;" onclick="processSAP()"><i class="fas fa-bolt"></i> <span>PROSES SAP</span></button>
-                <button class="btn-wp" style="background:#10b981;" onclick="exportInventoryToExcel()"><i class="fas fa-file-excel"></i> <span>EXCEL MAP</span></button>
-                
+                <button class="btn-wp" style="background:#10b981;" onclick="exportInventoryToExcel()"><i class="fas fa-file-excel"></i> <span>EXCEL</span></button>
                 <button class="btn-wp" style="background:var(--dark);" onclick="exportData()"><i class="fas fa-box"></i> <span>BACKUP</span></button>
                 <button class="btn-wp" style="background:#64748b;" onclick="document.getElementById('fileInput').click()"><i class="fas fa-upload"></i> <span>RESTORE</span></button>
                 <input type="file" id="fileInput" style="display:none" onchange="importData(event)">
             </div>
             <div class="row g-2">
-                <div class="col-md-6"><input type="text" id="matSearch" list="listMaterialMaster" class="form-control fw-bold border-primary shadow-sm" placeholder="🔍 Cari Kode / Nama Material / Batch..." oninput="debouncedSearchMap()"></div>
-                <div class="col-md-6"><textarea id="excelInput" class="form-control shadow-sm" style="height:42px; font-family:monospace;" placeholder="📋 Paste Data SAP di sini..."></textarea></div>
+                <div class="col-md-6"><input type="text" id="matSearch" list="listMaterialMaster" class="form-control fw-bold border-primary" placeholder="Cari Kode / Nama Material / Batch..." oninput="debouncedSearchMap()"></div>
+                <div class="col-md-6"><textarea id="excelInput" class="form-control" style="height:42px; font-family:monospace;" placeholder="Paste Data SAP di sini..."></textarea></div>
             </div>
         </div>
         
         <div id="mapWrapper">
             <div class="map-toolbar bg-white p-2 rounded shadow-sm border d-flex justify-content-between align-items-center mb-3">
-                 <span class="small fw-bold text-muted ms-2"><i class="fas fa-search-location me-1"></i> Skala Navigasi</span>
+                 <span class="small fw-bold text-muted ms-2"><i class="fas fa-search-location me-1"></i> Skala Zoom</span>
                  <div class="d-flex gap-2">
-                     <button class="btn btn-sm btn-outline-dark shadow-sm px-3" onclick="adjustZoom(-5)" title="Perkecil"><i class="fas fa-search-minus"></i></button>
-                     <button class="btn btn-sm btn-outline-dark shadow-sm px-3" onclick="adjustZoom(5)" title="Perbesar"><i class="fas fa-search-plus"></i></button>
-                     <div style="width: 1px; background: #cbd5e1; margin: 0 5px;"></div>
-                     <button class="btn btn-sm btn-primary fw-bold shadow-sm px-3" onclick="toggleFullScreen()" id="fsBtn"><i class="fas fa-expand me-1"></i> Full Screen</button>
+                     <button class="btn btn-sm btn-outline-dark" onclick="adjustZoom(-5)"><i class="fas fa-search-minus"></i></button>
+                     <button class="btn btn-sm btn-outline-dark" onclick="adjustZoom(5)"><i class="fas fa-search-plus"></i></button>
+                     <button class="btn btn-sm btn-primary fw-bold" onclick="toggleFullScreen()" id="fsBtn"><i class="fas fa-expand me-1"></i> Layar Penuh</button>
                  </div>
             </div>
             <div id="warehouse"></div>
@@ -210,15 +181,13 @@
         <div class="panel border-danger border-top border-4">
             <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
                 <h5 class="fw-bold m-0 text-danger"><i class="fas fa-shield-virus me-2"></i> Laporan Material Kritis & Karantina</h5>
-                <button class="btn btn-success fw-bold shadow-sm px-3" onclick="exportLaporanQA()"><i class="fas fa-file-excel me-1"></i> EXCEL REPORT</button>
+                <button class="btn btn-success fw-bold" onclick="exportLaporanQA()"><i class="fas fa-file-excel me-1"></i> EXCEL REPORT</button>
             </div>
             <div class="row g-3 mb-4" id="summaryQA"></div>
             <div class="table-responsive">
                 <table class="table table-hover table-bordered align-middle text-center" id="tableQAExcel">
                     <thead class="table-light">
-                        <tr>
-                            <th class="text-primary">Rak / Lokasi</th><th>Material</th><th>Batch</th><th>Status ED</th><th class="text-danger">Qty Blok/Hold</th><th class="text-warning text-dark">Qty Q.Insp</th><th class="text-success">Sisa Stok Aman</th>
-                        </tr>
+                        <tr><th class="text-primary">Rak</th><th>Material</th><th>Batch</th><th>Status ED</th><th class="text-danger">Qty Blok</th><th class="text-warning text-dark">Qty Insp</th><th class="text-success">Stok Aman</th></tr>
                     </thead>
                     <tbody id="bodyLaporanQA"></tbody>
                 </table>
@@ -230,43 +199,39 @@
         <div class="panel border-success border-top border-4">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
                 <div class="d-flex align-items-center gap-3">
-                    <h5 class="m-0 fw-bold"><i class="fas fa-tasks text-success me-2"></i> Picking Optimizer (FEFO)</h5>
-                    <button class="btn btn-primary fw-bold shadow-sm btn-sm px-3" id="btnMulaiSesiPick" onclick="startSession()"><i class="fas fa-play me-1"></i> MULAI SESI</button>
+                    <h5 class="m-0 fw-bold text-success"><i class="fas fa-tasks me-2"></i> Picking FEFO</h5>
+                    <button class="btn btn-primary fw-bold shadow-sm btn-sm" id="btnMulaiSesiPick" onclick="startSession()"><i class="fas fa-play me-1"></i> MULAI SESI</button>
                 </div>
-                <button class="btn shadow-sm" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; font-weight: 800; font-size: 13px; padding: 12px 24px; border-radius: 12px; border: none;" onclick="exportPickingToExcel()">
-                    <i class="fas fa-file-excel me-2"></i> DOWNLOAD EXCEL (.XLSX)
-                </button>
+                <button class="btn btn-success fw-bold" onclick="exportPickingToExcel()"><i class="fas fa-file-excel me-2"></i> DOWNLOAD XLSX</button>
             </div>
             <div class="row g-2 mb-3">
-                <div class="col-md-4"><input type="text" id="pickSearch" list="listMaterialMaster" class="form-control" placeholder="Cari Kode / Nama Material..." oninput="debouncedRenderPickList()"></div>
-                <div class="col-md-4"><input type="number" step="0.01" id="targetInputQty" class="form-control" placeholder="Target Kebutuhan (KG)..." oninput="debouncedRenderPickList()"></div>
-                <div class="col-md-4"><input type="text" id="allocFilter" class="form-control" placeholder="Filter Alokasi (Cth: PRODUKSI)..." oninput="debouncedRenderPickList()"></div>
+                <div class="col-md-4"><input type="text" id="pickSearch" list="listMaterialMaster" class="form-control" placeholder="Cari Material..." oninput="debouncedRenderPickList()"></div>
+                <div class="col-md-4"><input type="number" step="0.01" id="targetInputQty" class="form-control" placeholder="Target KG..." oninput="debouncedRenderPickList()"></div>
+                <div class="col-md-4"><input type="text" id="allocFilter" class="form-control" placeholder="Filter Alokasi..." oninput="debouncedRenderPickList()"></div>
             </div>
-            <div class="alert alert-warning border-0 shadow-sm small py-2 mb-3"><i class="fas fa-info-circle me-2"></i> Wajib klik <b>MULAI SESI</b> terlebih dahulu sebelum melakukan pengambilan barang.</div>
             <div id="pickBody" style="overflow-x: auto;"></div>
         </div>
     </div>
 
     <div id="tabTrace" class="tab-content">
         <div class="panel border-primary border-top border-4">
-            <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-file-invoice me-2"></i> Rekam Jejak Dokumen Transaksi</h5>
+            <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-file-invoice me-2"></i> Rekam Jejak Dokumen</h5>
             <div class="row g-4">
                 <div class="col-md-4 border-end">
-                    <h6 class="fw-bold mb-3"><i class="fas fa-filter me-1"></i> Filter Pencarian</h6>
                     <div class="row g-2 mb-3 border-bottom pb-3">
-                        <div class="col-6"><label class="small text-muted fw-bold">Dari Tgl</label><input type="date" id="docStartDate" class="form-control form-control-sm border-primary" onchange="renderDocList(true)"></div>
-                        <div class="col-6"><label class="small text-muted fw-bold">Sampai Tgl</label><input type="date" id="docEndDate" class="form-control form-control-sm border-primary" onchange="renderDocList(true)"></div>
+                        <div class="col-6"><label class="small fw-bold">Dari</label><input type="date" id="docStartDate" class="form-control form-control-sm" onchange="renderDocList(true)"></div>
+                        <div class="col-6"><label class="small fw-bold">Sampai</label><input type="date" id="docEndDate" class="form-control form-control-sm" onchange="renderDocList(true)"></div>
                         <div class="col-12 mt-2"><input type="text" id="docSearch" class="form-control form-control-sm" placeholder="Cari No Dokumen / Tipe..." oninput="debouncedRenderDocList(true)"></div>
                     </div>
-                    <div id="docListContainer" style="min-height: 250px; padding-right: 5px;"></div>
-                    <div id="docPagination" class="d-flex justify-content-between mt-3 align-items-center bg-light p-2 rounded border"></div>
+                    <div id="docListContainer" style="min-height: 250px;"></div>
+                    <div id="docPagination" class="d-flex justify-content-between mt-3 align-items-center"></div>
                 </div>
                 <div class="col-md-8 bg-light rounded-3 p-3 border">
                     <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-                        <h6 class="fw-bold m-0" id="docDetailTitle"><i class="fas fa-search me-1"></i> Detail Dokumen</h6>
+                        <h6 class="fw-bold m-0" id="docDetailTitle">Detail Dokumen</h6>
                         <div id="docActionArea" class="d-flex gap-2"></div>
                     </div>
-                    <div id="docDetailBody" class="text-center text-muted py-5"><i class="fas fa-file-alt fs-1 mb-3 opacity-25"></i><br>Pilih dokumen di samping untuk melihat rincian material.</div>
+                    <div id="docDetailBody" class="text-center text-muted py-5">Pilih dokumen untuk melihat rincian.</div>
                 </div>
             </div>
         </div>
@@ -274,10 +239,10 @@
 
     <div id="tabMultiBin" class="tab-content">
         <div class="panel">
-            <h5 class="fw-bold"><i class="fas fa-search-location text-primary me-2"></i> Audit Multi-Bin</h5>
+            <h5 class="fw-bold text-primary"><i class="fas fa-search me-2"></i> Audit Multi-Bin</h5>
             <div class="d-flex gap-2 mb-3">
-                <textarea id="multiBinInput" class="form-control" style="height:80px;" placeholder="Paste banyak alamat rak berjejer di sini (contoh: L1-R1-C1, L2-R3-C4)..."></textarea>
-                <button class="btn-wp" style="background:var(--blue); color:#1e3a8a; width:120px;" onclick="searchMultiBin()"><i class="fas fa-search"></i> CARI</button>
+                <textarea id="multiBinInput" class="form-control" style="height:80px;" placeholder="Paste alamat rak berjejer (contoh: L1-R1-C1, L2-R3-C4)..."></textarea>
+                <button class="btn btn-primary px-4" onclick="searchMultiBin()">CARI</button>
             </div>
             <div id="multiBinResult" style="overflow-x: auto;"></div>
         </div>
@@ -286,479 +251,293 @@
     <div id="tabAnalisa" class="tab-content">
         <div class="panel mb-3 border-top border-4 border-info">
             <div class="row align-items-center">
-                <div class="col-md-4"><h5 class="m-0 fw-bold"><i class="fas fa-calculator text-info me-2"></i> Kalkulator Kuantitas</h5></div>
-                <div class="col-md-4 text-center my-2 my-md-0">
-                    <div class="bg-light border border-info rounded-pill py-2 px-3 shadow-sm d-inline-block">
+                <div class="col-md-4"><h5 class="m-0 fw-bold">Kalkulator Kuantitas</h5></div>
+                <div class="col-md-4 text-center">
+                    <div class="bg-light border border-info rounded-pill py-2 px-4 shadow-sm d-inline-block">
                         <span class="small fw-bold text-muted me-2">GRAND TOTAL:</span>
-                        <span class="fs-5 fw-bold text-primary" id="grandTotalBadge">0</span> 
-                        <span class="small fw-bold text-muted">KG</span>
+                        <span class="fs-5 fw-bold text-primary" id="grandTotalBadge">0</span> KG
                     </div>
                 </div>
-                <div class="col-md-4"><input type="text" id="analisaSearch" list="listMaterialMaster" class="form-control border-info fw-bold" placeholder="Ketik Kode / Nama Material..." oninput="debouncedCalculateAnalisa()"></div>
+                <div class="col-md-4"><input type="text" id="analisaSearch" list="listMaterialMaster" class="form-control fw-bold" placeholder="Filter Material..." oninput="debouncedCalculateAnalisa()"></div>
             </div>
         </div>
         <div class="row g-3">
-            <div class="col-md-6"><div class="panel h-100"><h5 class="fw-bold mb-3"><i class="fas fa-chart-bar text-warning me-2"></i> Top 10 Terbanyak</h5><div id="top10Body" style="overflow-x:auto;"></div></div></div>
+            <div class="col-md-6"><div class="panel"><h6 class="fw-bold mb-3">Top 10 Material</h6><div id="top10Body"></div></div></div>
             <div class="col-md-6">
-                <div class="panel h-100"><h5 class="fw-bold mb-3"><i class="fas fa-cogs text-secondary me-2"></i> Konfigurasi Alokasi</h5>
-                    <input type="text" id="defaultAllocName" class="form-control mb-3 fw-bold text-center text-primary bg-light" onchange="defaultAllocName=this.value.toUpperCase()" placeholder="Default: PRODUKSI">
-                    <div class="action-grid" style="grid-template-columns: repeat(2, 1fr);">
-                        <button class="btn-wp" style="background:var(--blue);" onclick="addBatchRow()"><i class="fas fa-plus"></i> Tambah Baris</button>
-                        <button class="btn-wp" style="background:var(--green); color:#14532d;" onclick="syncServer()"><i class="fas fa-save"></i> Simpan Konfigurasi</button>
-                    </div>
-                    <div id="batchDBBody" style="overflow-x:auto;"></div>
+                <div class="panel"><h6 class="fw-bold mb-3">Konfigurasi Alokasi</h6>
+                    <input type="text" id="defaultAllocName" class="form-control mb-2 fw-bold text-primary" placeholder="Default Alokasi (Cth: PRODUKSI)">
+                    <div class="d-flex gap-2 mb-2"><button class="btn btn-sm btn-primary w-100" onclick="addBatchRow()">+ Tambah</button><button class="btn btn-sm btn-success w-100" onclick="syncServer()">Simpan</button></div>
+                    <div id="batchDBBody"></div>
                 </div>
             </div>
         </div>
         <div class="panel mt-3">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold m-0"><i class="fas fa-layer-group text-success me-2"></i> Resume Distribusi Alokasi</h5>
-                <button class="btn-wp" style="background:var(--green); width:auto;" onclick="exportAnalisaToExcel()"><i class="fas fa-download me-1"></i> EXCEL (.xlsx)</button>
-            </div>
-            <div id="batchResumBody" style="overflow-x:auto;"></div>
-        </div>
-    </div>
-
-    <div id="binModal" class="modal-wp">
-        <div class="modal-content-wp shadow-lg">
-            <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
-                <h4 id="binModalTitle" class="m-0 fw-bold"></h4>
-                <div class="d-flex gap-2">
-                    <button id="btnToggleBinEdit" class="btn-wp m-0 shadow-sm" style="background:var(--orange); color:#7c2d12; width:auto;" onclick="toggleBinEdit()"><i class="fas fa-cog"></i> MODE INPUT MANUAL</button>
-                </div>
-            </div>
-            <div style="overflow-x:auto;"><table style="min-width: 600px;"><thead id="binModalHead"></thead><tbody id="binModalBody"></tbody></table></div>
-            <div id="binModalActions" style="display:none; margin-top:20px;" class="action-grid" style="grid-template-columns: 1fr 2fr;">
-                <button class="btn-wp shadow-sm" style="background:var(--blue);" onclick="addBinRow()"><i class="fas fa-plus"></i> Tambah Material</button>
-                <button class="btn-wp shadow-sm" style="background:var(--green); color:#14532d;" onclick="saveBinData()"><i class="fas fa-save"></i> SIMPAN PENAMBAHAN</button>
-            </div>
-            <button id="binModalCloseBtn" class="btn-wp w-100 mt-4 shadow-sm" style="background:var(--dark); padding: 12px; width:100%;" onclick="closeBinModal()">TUTUP</button>
-        </div>
-    </div>
-
-    <div id="divisorModal" class="modal-wp">
-        <div class="modal-content-wp shadow-lg" style="max-width: 400px;">
-            <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
-                <h5 class="m-0 fw-bold text-dark"><i class="fas fa-sliders-h text-primary me-2"></i> Seting Kapasitas Palet</h5>
-                <button class="btn-close" onclick="closeDivisorModal()"></button>
-            </div>
-            <div class="mb-3">
-                <label class="form-label small fw-bold text-muted">Area Open SLOC</label>
-                <input type="text" id="divSlocLabel" class="form-control fw-bold bg-light" readonly>
-                <input type="hidden" id="divSlocKey">
-            </div>
-            <div class="mb-4">
-                <label class="form-label small fw-bold text-muted">Rasio Pembagi (KG per Palet)</label>
-                <div class="input-group">
-                    <input type="number" id="divValueInput" class="form-control fw-bold text-primary fs-5" min="1" step="0.01" style="text-align: right;">
-                    <span class="input-group-text bg-light fw-bold text-muted">KG</span>
-                </div>
-                <small class="text-muted d-block mt-2" style="font-size: 11px; line-height: 1.4;">Nilai ini akan membagi total KG di area open menjadi satuan Palet.</small>
-            </div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-secondary w-50 fw-bold shadow-sm" style="border-radius: 10px;" onclick="closeDivisorModal()">BATAL</button>
-                <button class="btn btn-primary w-50 fw-bold shadow-sm" style="border-radius: 10px;" onclick="saveDivisor()"><i class="fas fa-save me-1"></i> SIMPAN</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="qaModal" class="modal-wp">
-        <div class="modal-content-wp shadow-lg" style="max-width: 800px;">
-            <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
-                <h5 class="m-0 fw-bold text-dark" id="qaModalTitle">Detail Material</h5>
-                <button class="btn-close" onclick="document.getElementById('qaModal').style.display='none'"></button>
-            </div>
-            <div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
-                <table class="table table-hover table-bordered align-middle text-center small mb-0">
-                    <thead class="table-light" style="position: sticky; top: 0; z-index: 2;">
-                        <tr><th class="text-primary">Rak / Lokasi</th><th class="text-start">Kode & Material</th><th>Batch</th><th>Qty (KG)</th></tr>
-                    </thead>
-                    <tbody id="qaModalBody"></tbody>
-                </table>
-            </div>
+            <h6 class="fw-bold mb-3">Resume Distribusi Alokasi</h6>
+            <div id="batchResumBody"></div>
         </div>
     </div>
 </div>
 
+<div id="binModal" class="modal-wp">
+    <div class="modal-content-wp shadow-lg">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+            <h4 id="binModalTitle" class="m-0 fw-bold"></h4>
+            <button id="btnToggleBinEdit" class="btn-wp w-auto px-3" style="background:var(--orange); color:#7c2d12;" onclick="toggleBinEdit()">MODE INPUT MANUAL</button>
+        </div>
+        <div style="overflow-x:auto;"><table class="table-sm">
+            <thead id="binModalHead"></thead>
+            <tbody id="binModalBody"></tbody>
+        </table></div>
+        <div id="binModalActions" style="display:none; margin-top:20px;" class="d-flex gap-2">
+            <button class="btn btn-primary" onclick="addBinRow()">+ Material</button>
+            <button class="btn btn-success" onclick="saveBinData()">SIMPAN DATA</button>
+        </div>
+        <button id="binModalCloseBtn" class="btn btn-dark w-100 mt-4" onclick="closeBinModal()">TUTUP</button>
+    </div>
+</div>
+
+<div id="divisorModal" class="modal-wp">
+    <div class="modal-content-wp shadow-lg" style="max-width: 400px;">
+        <h5 class="fw-bold mb-3">Seting Kapasitas Palet</h5>
+        <div class="mb-3"><label class="small fw-bold">Area</label><input type="text" id="divSlocLabel" class="form-control bg-light" readonly><input type="hidden" id="divSlocKey"></div>
+        <div class="mb-4"><label class="small fw-bold">Rasio (KG/Palet)</label><div class="input-group"><input type="number" id="divValueInput" class="form-control fw-bold"><span class="input-group-text">KG</span></div></div>
+        <div class="d-flex gap-2"><button class="btn btn-secondary w-50" onclick="closeDivisorModal()">BATAL</button><button class="btn btn-primary w-50" onclick="saveDivisor()">SIMPAN</button></div>
+    </div>
+</div>
+
+<div id="qaModal" class="modal-wp">
+    <div class="modal-content-wp shadow-lg" style="max-width: 800px;">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3"><h5 class="m-0 fw-bold" id="qaModalTitle"></h5><button class="btn-close" onclick="document.getElementById('qaModal').style.display='none'"></button></div>
+        <div class="table-responsive" style="max-height: 60vh;"><table class="table table-bordered table-sm"><thead class="table-light"><tr><th>Rak</th><th>Material</th><th>Batch</th><th>Qty (KG)</th></tr></thead><tbody id="qaModalBody"></tbody></table></div>
+    </div>
+</div>
+
 <script src="koneksi.js"></script>
+
 <script>
 let layout = {}, headers = {}, inventory = {}, vert = {}, batchDB = [];
 let defaultAllocName = "PRODUKSI", documents = {}, lastDocNum = 0;
 let settings = { div_1002: 350, div_1003: 350 };
-
-let editMode = false, recommendedSlocs = [];
-let currentEditSloc = "", isBinEditMode = false, currentBinItems = []; 
-let slocStatsData = {}; 
+let editMode = false, recommendedSlocs = [], currentEditSloc = "", isBinEditMode = false, currentBinItems = [], slocStatsData = {}; 
 const TODAY = new Date();
 
 // ==========================================
-// SUPABASE SYNC 
+// 1. FUNGSI SINKRONISASI CLOUD (ANTI-HANG)
 // ==========================================
 async function loadDataFromCloud() {
     try {
-        const { data: config, error } = await supabase.from('app_config').select('config_data').eq('id', 'wms_settings').single();
+        // Cek apakah file koneksi.js berhasil terbaca oleh browser
+        if (typeof dbCloud === 'undefined') {
+            throw new Error("File koneksi.js gagal dimuat! Harap hapus Cache browser (CTRL + SHIFT + R).");
+        }
+
+        const { data: config, error } = await dbCloud.from('app_config').select('config_data').eq('id', 'wms_settings').maybeSingle();
+        
+        if (error) throw error; // Lempar error ke blok catch agar loading berhenti
+
         if (config && config.config_data) {
             let d = config.config_data;
             layout = d.layout || {}; headers = d.headers || {}; inventory = d.inventory || {};
             vert = d.vert || {}; batchDB = d.batchDB || []; defaultAllocName = d.defaultAlloc || "PRODUKSI";
-            documents = d.documents || {}; lastDocNum = d.lastDocNum || 0;
-            settings = d.settings || { div_1002: 350, div_1003: 350 };
+            documents = d.documents || {}; lastDocNum = d.lastDocNum || 0; settings = d.settings || { div_1002: 350, div_1003: 350 };
             document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-check-circle text-success me-1"></i> Data Tersinkron';
-            document.getElementById('cloudStatus').classList.replace('border-secondary', 'border-success');
         } else {
             document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-info-circle text-warning me-1"></i> Data Cloud Kosong';
         }
     } catch (e) {
-        document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-times-circle text-danger me-1"></i> Gagal Koneksi Cloud';
-        document.getElementById('cloudStatus').classList.replace('border-secondary', 'border-danger');
-        console.error(e);
+        document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-times-circle text-danger me-1"></i> Error Koneksi';
+        console.error("Error Load Supabase:", e.message);
+        alert("Gagal terhubung ke database. Pesan error: " + e.message);
     }
     
     if(document.getElementById('defaultAllocName')) document.getElementById('defaultAllocName').value = defaultAllocName;
-    calculateAll();
+    calculateAll(); // Akan selalu jalan agar peta tidak nge-blank
 }
 
 async function syncServer() {
+    document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-spinner fa-spin text-primary me-1"></i> Menyimpan...';
     if(document.getElementById('defaultAllocName')) defaultAllocName = document.getElementById('defaultAllocName').value.toUpperCase();
     let payload = { layout, headers, inventory, vert, batchDB, defaultAlloc: defaultAllocName, documents, lastDocNum, settings };
-    const { error } = await supabase.from('app_config').upsert({ id: 'wms_settings', config_data: payload });
-    if (error) { alert("❌ Gagal Simpan ke Cloud: " + error.message); } else { alert("✅ Data Server Cloud Berhasil Diperbarui!"); location.reload(); }
-}
+    
+    if (typeof dbCloud === 'undefined') return alert("Gagal Simpan: Koneksi Supabase Terputus.");
 
-async function deleteDocument(docId) {
-    if(!confirm(`HAPUS PERMANEN DOKUMEN ARSIP ${docId}?\n\nCatatan: Ini tidak akan mengembalikan/merubah fisik barang di rak, hanya menghapus arsip dokumen saja untuk meringankan server.`)) return;
-    delete documents[docId];
-    let payload = { layout, headers, inventory, vert, batchDB, defaultAlloc: defaultAllocName, documents, lastDocNum, settings };
-    await supabase.from('app_config').upsert({ id: 'wms_settings', config_data: payload });
-    alert("Dokumen " + docId + " Berhasil Dihapus Permanen!");
-    renderDocList(true); 
-    document.getElementById('docDetailBody').innerHTML = '<div class="text-center text-muted py-5"><i class="fas fa-file-alt fs-1 mb-3 opacity-25"></i><br>Pilih dokumen di samping untuk melihat rincian material.</div>';
-    document.getElementById('docDetailTitle').innerHTML = '<i class="fas fa-search me-1"></i> Detail Dokumen';
-    document.getElementById('docActionArea').innerHTML = '';
+    const { error } = await dbCloud.from('app_config').upsert({ id: 'wms_settings', config_data: payload });
+    if (error) { 
+        alert("Gagal Simpan: " + error.message); 
+        document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-times-circle text-danger me-1"></i> Gagal Menyimpan';
+    } else { 
+        alert("Data Berhasil Disinkronkan ke Cloud!"); 
+        location.reload(); 
+    }
 }
-
-window.onload = loadDataFromCloud;
 
 // ==========================================
-// FUNGSI BACKUP & RESTORE
+// 2. FUNGSI BACKUP & RESTORE
 // ==========================================
 function exportData() { 
     const a = document.createElement('a'); 
-    a.href = URL.createObjectURL(new Blob([JSON.stringify({layout, headers, inventory, vert, batchDB, defaultAlloc: defaultAllocName, documents: documents, lastDocNum: lastDocNum, settings: settings})], {type:"application/json"})); 
-    a.download="warehouse_backup.json"; 
-    a.click(); 
+    a.href = URL.createObjectURL(new Blob([JSON.stringify({layout, headers, inventory, vert, batchDB, defaultAlloc: defaultAllocName, documents, lastDocNum, settings})], {type:"application/json"})); 
+    a.download="warehouse_backup.json"; a.click(); 
 }
 
 function importData(e) { 
     const r = new FileReader(); 
     r.onload = (ev) => { 
         const d = JSON.parse(ev.target.result); 
-        layout=d.layout; headers=d.headers; inventory=d.inventory; vert=d.vert; batchDB=d.batchDB; defaultAllocName=d.defaultAlloc || "PRODUKSI"; documents=d.documents||{}; lastDocNum=d.lastDocNum||0; settings=d.settings||{div_1002:350, div_1003:350}; 
-        syncServer(); 
+        layout=d.layout||{}; headers=d.headers||{}; inventory=d.inventory||{}; vert=d.vert||{}; batchDB=d.batchDB||[]; 
+        defaultAllocName=d.defaultAlloc||"PRODUKSI"; documents=d.documents||{}; lastDocNum=d.lastDocNum||0; settings=d.settings||{div_1002:350, div_1003:350}; 
+        
+        calculateAll();
+        document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-exclamation-triangle text-warning me-1"></i> Belum Disimpan';
+        alert("File berhasil dibaca! Pastikan klik 'SIMPAN CLOUD' agar data tersimpan di Supabase.");
     }; 
     r.readAsText(e.target.files[0]); 
 }
 
 // ==========================================
-// FUNGSI LAINNYA 
+// 3. RENDER AGING STOCK / LAPORAN QA
 // ==========================================
-function formatNum(num) { let val = parseFloat(num); if (isNaN(val)) return "0"; return val.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
-function debounce(func, wait) { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); }; }
+function renderLaporanStatus() {
+    let tExp = 0, tNear = 0, tInsp = 0, tBlock = 0, html = "", dataList = [];
+    if (!inventory || Object.keys(inventory).length === 0) { 
+        document.getElementById('bodyLaporanQA').innerHTML = '<tr><td colspan="7" class="py-5 text-muted text-center">Belum ada data stok. Silakan Restore atau Sync data.</td></tr>'; return; 
+    }
+    
+    Object.keys(inventory).forEach(sloc => {
+        inventory[sloc].forEach(it => {
+            let st = checkExpired(it.batch), qB = parseFloat(it.qBlock)||0, qI = parseFloat(it.qInsp)||0, qU = parseFloat(it.qty)||0, qT = qB+qI+qU;
+            if (qT <= 0) return;
+            let kritis = false;
+            if (st==='expired'){ tExp+=qT; kritis=true; } else if (st==='near_ed'){ tNear+=qT; kritis=true; }
+            if (qB > 0){ tBlock+=qB; kritis=true; } if (qI > 0){ tInsp+=qI; kritis=true; }
+            if (kritis) dataList.push({sloc, code: it.code, desc: it.desc, batch: it.batch, st, qB, qI, qU});
+        });
+    });
+
+    document.getElementById('summaryQA').innerHTML = `
+        <div class="col-md-3 col-6"><div class="stat-box shadow-sm border border-danger clickable-widget" onclick="showQADetail('expired')"><div class="stat-lbl text-danger">Expired</div><div class="stat-val text-danger">${formatNum(tExp)}</div></div></div>
+        <div class="col-md-3 col-6"><div class="stat-box shadow-sm border border-warning clickable-widget" onclick="showQADetail('near_ed')"><div class="stat-lbl text-warning text-dark">Near ED</div><div class="stat-val text-warning text-dark">${formatNum(tNear)}</div></div></div>
+        <div class="col-md-3 col-6"><div class="stat-box shadow-sm border border-info clickable-widget" onclick="showQADetail('insp')"><div class="stat-lbl text-info">QC Insp</div><div class="stat-val text-info">${formatNum(tInsp)}</div></div></div>
+        <div class="col-md-3 col-6"><div class="stat-box shadow-sm border border-dark clickable-widget" onclick="showQADetail('blok')"><div class="stat-lbl text-dark">Blok/Hold</div><div class="stat-val text-dark">${formatNum(tBlock)}</div></div></div>`;
+        
+    if(dataList.length === 0) { 
+        html = `<tr><td colspan="7" class="text-center py-5 text-success fw-bold">Gudang Aman. Tidak ada material kritis.</td></tr>`; 
+    } else { 
+        dataList.forEach(d => {
+            let badge = (d.st==='expired') ? '<span class="badge bg-danger">EXPIRED</span>' : (d.st==='near_ed' ? '<span class="badge bg-warning text-dark">NEAR ED</span>' : '<span class="badge bg-success">OK</span>');
+            html += `<tr><td class="fw-bold text-primary">${d.sloc}</td><td class="text-start"><b>${d.code}</b><br><small>${d.desc}</small></td><td class="fw-bold">${d.batch}</td><td>${badge}</td><td class="fw-bold text-danger">${d.qB>0?formatNum(d.qB):'-'}</td><td class="fw-bold text-warning text-dark">${d.qI>0?formatNum(d.qI):'-'}</td><td class="fw-bold text-success">${d.qU>0?formatNum(d.qU):'-'}</td></tr>`;
+        }); 
+    }
+    document.getElementById('bodyLaporanQA').innerHTML = html;
+}
+
+// ==========================================
+// 4. OPERASIONAL & MAPS LAINNYA
+// ==========================================
+function formatNum(num) { let val = parseFloat(num); return isNaN(val) ? "0" : val.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
+function debounce(func, wait) { let t; return function(...args) { clearTimeout(t); t = setTimeout(() => func.apply(this, args), wait); }; }
 const debouncedSearchMap = debounce(searchMap, 300); const debouncedRenderPickList = debounce(renderPickList, 300); const debouncedCalculateAnalisa = debounce(calculateAnalisa, 300); const debouncedRenderDocList = debounce(renderDocList, 300);
-let activeSessionDoc = null; let activeSessionDetails = [];
 function generateDocNum() { lastDocNum++; return lastDocNum.toString().padStart(6, '0'); }
 
-function updateBtnSesiUI(isActive) {
-    const bMap = document.getElementById('btnMulaiSesiMap'); const bPick = document.getElementById('btnMulaiSesiPick');
-    if(isActive) {
-        if(bMap) { bMap.innerHTML = '<i class="fas fa-spinner"></i> <span>SESI AKTIF</span>'; bMap.classList.add('btn-sesi-aktif'); bMap.disabled = true; }
-        if(bPick) { bPick.innerHTML = '<i class="fas fa-spinner"></i> SESI AKTIF'; bPick.classList.add('btn-sesi-aktif'); bPick.disabled = true; }
-    } else {
-        if(bMap) { bMap.innerHTML = '<i class="fas fa-play"></i> <span>MULAI SESI</span>'; bMap.classList.remove('btn-sesi-aktif'); bMap.disabled = false; }
-        if(bPick) { bPick.innerHTML = '<i class="fas fa-play me-1"></i> MULAI SESI'; bPick.classList.remove('btn-sesi-aktif'); bPick.disabled = false; }
-    }
-}
-
 function startSession() {
-    if(activeSessionDoc) { alert("Ada sesi yang masih berjalan! Selesaikan terlebih dahulu."); return; }
-    activeSessionDoc = generateDocNum(); activeSessionDetails = [];
-    document.getElementById('sessionPanel').classList.remove('d-none'); document.getElementById('sessionPanel').classList.add('session-panel-active'); document.getElementById('sessionDocNum').innerText = activeSessionDoc;
+    if(activeSessionDoc) return alert("Selesaikan sesi aktif dulu!"); activeSessionDoc = generateDocNum(); activeSessionDetails = [];
+    document.getElementById('sessionPanel').classList.replace('d-none', 'session-panel-active'); document.getElementById('sessionDocNum').innerText = activeSessionDoc;
     updateSessionCount(); updateBtnSesiUI(true);
 }
-
-function updateSessionCount() { document.getElementById('sessionCount').innerText = activeSessionDetails.length + " Pergerakan"; }
-
 function endSession() {
     if(!activeSessionDoc) return;
     if(activeSessionDetails.length > 0) {
-        let typeName = "WMS TRANSACTION"; let outCount = activeSessionDetails.filter(d => d.type === 'OUT').length; let inCount = activeSessionDetails.filter(d => d.type === 'INB').length; let trfCount = activeSessionDetails.filter(d => d.type === 'TRF').length;
-        if (outCount > inCount && outCount > trfCount) typeName = "PICKING / OUT"; else if (inCount > outCount && inCount > trfCount) typeName = "INBOUND MANUAL"; else if (trfCount > 0) typeName = "TRANSFER RAK";
-        documents[activeSessionDoc] = { waktu: new Date().toLocaleString('id-ID'), tipe: typeName, detail: activeSessionDetails };
-        alert(`✅ Sesi ${activeSessionDoc} Selesai!\nSistem akan menyimpan ${activeSessionDetails.length} pergerakan ke Cloud.`); syncServer(); 
-    } else { alert("Sesi dibatalkan karena tidak ada pergerakan barang."); }
-    activeSessionDoc = null; activeSessionDetails = [];
-    document.getElementById('sessionPanel').classList.add('d-none'); document.getElementById('sessionPanel').classList.remove('session-panel-active'); updateBtnSesiUI(false);
+        let outC = activeSessionDetails.filter(d=>d.type==='OUT').length, inC = activeSessionDetails.filter(d=>d.type==='INB').length, type = "WMS TRANSACTION";
+        if (outC > inC) type = "PICKING / OUT"; else if (inC > outC) type = "INBOUND MANUAL";
+        documents[activeSessionDoc] = { waktu: new Date().toLocaleString('id-ID'), tipe: type, detail: activeSessionDetails }; alert(`Sesi ${activeSessionDoc} Selesai! Menyimpan ke Cloud...`); syncServer(); 
+    } else { alert("Sesi dibatalkan (kosong)."); }
+    activeSessionDoc = null; document.getElementById('sessionPanel').classList.replace('session-panel-active', 'd-none'); updateBtnSesiUI(false);
 }
 
-function openDivisorModal(key) { document.getElementById('divSlocKey').value = key; document.getElementById('divSlocLabel').value = 'OPEN ' + key; document.getElementById('divValueInput').value = settings[`div_${key}`] || 350; document.getElementById('divisorModal').style.display = 'block'; }
-function closeDivisorModal() { document.getElementById('divisorModal').style.display = 'none'; }
-function saveDivisor() { let key = document.getElementById('divSlocKey').value; let val = parseFloat(document.getElementById('divValueInput').value); if (!val || val <= 0) return alert("Nilai harus lebih besar dari 0!"); settings[`div_${key}`] = val; closeDivisorModal(); updateMapData(); syncServer(); }
-
-let currentBoxSize = 58;
-function adjustZoom(amount) { currentBoxSize += amount; if (currentBoxSize < 30) currentBoxSize = 30; if (currentBoxSize > 120) currentBoxSize = 120; let fontSize = Math.max(8, Math.round(currentBoxSize / 4.8)); document.documentElement.style.setProperty('--box-s', currentBoxSize + 'px'); document.documentElement.style.setProperty('--box-f', fontSize + 'px'); }
-
-function toggleFullScreen() { const wrapper = document.getElementById('mapWrapper'); const btn = document.getElementById('fsBtn'); wrapper.classList.toggle('fullscreen-mode'); if (wrapper.classList.contains('fullscreen-mode')) { document.body.style.overflow = 'hidden'; btn.innerHTML = '<i class="fas fa-compress me-1"></i> Tutup Layar Penuh'; btn.classList.replace('btn-primary', 'btn-danger'); } else { document.body.style.overflow = 'auto'; btn.innerHTML = '<i class="fas fa-expand me-1"></i> Full Screen'; btn.classList.replace('btn-danger', 'btn-primary'); } }
+function updateSessionCount() { document.getElementById('sessionCount').innerText = activeSessionDetails.length + " Pergerakan"; }
+function updateBtnSesiUI(active) {
+    const bMap = document.getElementById('btnMulaiSesiMap'), bPick = document.getElementById('btnMulaiSesiPick');
+    [bMap, bPick].forEach(b => { if(b) { b.disabled = active; b.innerHTML = active ? '<i class="fas fa-spinner"></i> SESI AKTIF' : '<i class="fas fa-play"></i> MULAI SESI'; if(active) b.classList.add('btn-sesi-aktif'); else b.classList.remove('btn-sesi-aktif'); } });
+}
 
 function openTab(e, name) {
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(name).classList.add("active"); if(e) e.currentTarget.classList.add("active");
-    const legendDisplay = (name === 'tabMap') ? 'flex' : 'none'; const alertMapTips = document.getElementById('alertMapTips'); document.getElementById('legendMap').style.display = legendDisplay; if(alertMapTips) alertMapTips.style.display = legendDisplay;
-    if(name === 'tabTrace') renderDocList(true);
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(name).classList.add("active"); if(e) e.currentTarget.classList.add("active");
+    if(name === 'tabLaporanQA') renderLaporanStatus(); if(name === 'tabTrace') renderDocList(true); if(name === 'tabAnalisa') calculateAnalisa();
 }
 
-function buildMaterialMaster() { let seen = new Set(); const dl = document.getElementById('listMaterialMaster'); dl.innerHTML = ''; Object.values(inventory).flat().forEach(it => { if(it.code && !seen.has(it.code)) { seen.add(it.code); let opt = document.createElement('option'); opt.value = it.code; opt.innerText = it.desc; dl.appendChild(opt); } }); }
-function autoFillMaterial(input) { let code = input.value.toUpperCase(); let descInput = input.closest('tr').querySelector('.i-desc'); let found = null; Object.values(inventory).flat().forEach(it => { if(it.code === code) found = it.desc; }); if(found) { descInput.value = found; descInput.classList.add('flash-green'); setTimeout(() => descInput.classList.remove('flash-green'), 1000); } }
-function parseDate(b) { if(!b || b.length < 6) return new Date(2099,0,1); let d = parseInt(b.substring(0,2)), m = parseInt(b.substring(2,4))-1, y = parseInt("20"+b.substring(4,6)); let dt = new Date(y,m,d); return isNaN(dt.getTime()) ? new Date(2099,0,1) : dt; }
-function checkExpired(batchStr) { let diff = (parseDate(batchStr) - TODAY) / 86400000; if(diff < 0) return 'expired'; if(diff <= 90) return 'near_ed'; return 'normal'; }
-function getBatchAllocation(batchStr) { if(!batchStr || batchStr === "-") return defaultAllocName; for(let db of batchDB) { if(db.c && batchStr.toUpperCase().includes(db.c.toUpperCase())) return db.t; } return defaultAllocName; }
+function parseDate(b) { if(!b || b.length < 6) return new Date(2099,0,1); let d = parseInt(b.substring(0,2)), m = parseInt(b.substring(2,4))-1, y = parseInt("20"+b.substring(4,6)), dt = new Date(y,m,d); return isNaN(dt.getTime()) ? new Date(2099,0,1) : dt; }
+function checkExpired(batch) { let diff = (parseDate(batch) - TODAY) / 86400000; if(diff < 0) return 'expired'; if(diff <= 90) return 'near_ed'; return 'normal'; }
+function getBatchAllocation(batch) { if(!batch || batch==="-") return defaultAllocName; for(let db of batchDB) { if(db.c && batch.toUpperCase().includes(db.c)) return db.t; } return defaultAllocName; }
 
 function showDetail(addr) { currentEditSloc = addr; isBinEditMode = false; currentBinItems = JSON.parse(JSON.stringify(inventory[addr] || [])); document.getElementById('binModal').style.display = 'block'; renderBinModal(); }
+function closeBinModal() { document.getElementById('binModal').style.display = 'none'; isBinEditMode = false; }
 function toggleBinEdit() { isBinEditMode = !isBinEditMode; if(!isBinEditMode) currentBinItems = JSON.parse(JSON.stringify(inventory[currentEditSloc] || [])); else if(currentBinItems.length === 0) currentBinItems.push({code:'', desc:'', batch:'', qty:0, qInsp:0, qBlock:0, is_manual:true}); renderBinModal(); }
 
 function renderBinModal() {
-    document.getElementById('binModalTitle').innerHTML = `📍 Rak: <span class="text-primary">${currentEditSloc}</span>`; const head = document.getElementById('binModalHead'), body = document.getElementById('binModalBody'); const actions = document.getElementById('binModalActions'), closeBtn = document.getElementById('binModalCloseBtn'), toggleBtn = document.getElementById('btnToggleBinEdit'); body.innerHTML = '';
+    const head = document.getElementById('binModalHead'), body = document.getElementById('binModalBody'), actions = document.getElementById('binModalActions'), closeBtn = document.getElementById('binModalCloseBtn'), toggleBtn = document.getElementById('btnToggleBinEdit');
+    document.getElementById('binModalTitle').innerHTML = `📍 Rak: <span class="text-primary">${currentEditSloc}</span>`; body.innerHTML = '';
     if (isBinEditMode) {
-        toggleBtn.innerHTML = '<i class="fas fa-times"></i> BATAL INPUT'; toggleBtn.style.background = 'var(--red)'; actions.style.display = 'grid'; closeBtn.style.display = 'none'; head.innerHTML = `<tr><th>Kode Material</th><th>Nama (Auto-fill)</th><th>Batch</th><th>Qty (KG)</th><th>Hapus</th></tr>`;
-        currentBinItems.forEach((it) => { let q = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); let tr = document.createElement('tr'); tr.innerHTML = `<td><input type="text" class="form-control i-code" list="listMaterialMaster" value="${it.code||''}" oninput="autoFillMaterial(this)" style="font-weight:bold;"></td><td><input type="text" class="form-control i-desc" value="${it.desc||''}"></td><td><input type="text" class="form-control i-batch" value="${it.batch||''}" style="text-transform:uppercase;"></td><td><input type="number" step="0.01" class="form-control i-qty text-primary" value="${q||0}" style="font-weight:bold;"></td><td class="text-center"><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()"><i class="fas fa-trash"></i></button></td>`; body.appendChild(tr); });
+        toggleBtn.innerHTML = 'BATAL'; toggleBtn.style.background = 'var(--red)'; actions.style.display = 'flex'; closeBtn.style.display = 'none';
+        head.innerHTML = `<tr><th>Kode</th><th>Nama</th><th>Batch</th><th>KG</th><th></th></tr>`;
+        currentBinItems.forEach((it) => { let q = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); body.innerHTML += `<tr><td><input class="form-control i-code" value="${it.code||''}" oninput="autoFillMaterial(this)"></td><td><input class="form-control i-desc" value="${it.desc||''}"></td><td><input class="form-control i-batch" value="${it.batch||''}"></td><td><input type="number" class="form-control i-qty" value="${q}"></td><td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()"><i class="fas fa-trash"></i></button></td></tr>`; });
     } else {
-        toggleBtn.innerHTML = '<i class="fas fa-plus-circle"></i> MODE INPUT MANUAL'; toggleBtn.style.background = 'var(--orange)'; actions.style.display = 'none'; closeBtn.style.display = 'block'; head.innerHTML = `<tr><th>Kode & Nama</th><th>Batch</th><th>Total Qty (KG)</th><th>Status & Alokasi</th><th class="text-center">Tindakan</th></tr>`;
-        if (currentBinItems.length === 0) body.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-5 fw-bold">Rak Kosong.</td></tr>`; else {
-            currentBinItems.forEach(it => {
-                let qtyTotal = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); let st = checkExpired(it.batch); let extraBadge = ''; if (parseFloat(it.qBlock) > 0) extraBadge += `<span class="badge bg-danger mt-1" style="font-size:10px;">Di-Blok/Hold: ${formatNum(it.qBlock)}</span><br>`; if (parseFloat(it.qInsp) > 0) extraBadge += `<span class="badge bg-warning text-dark mt-1" style="font-size:10px;">Di-Insp: ${formatNum(it.qInsp)}</span><br>`;
-                let edBadge = st === 'expired' ? `<span class="badge-status" style="background:#fecaca; color:#991b1b; border:1px solid #ef4444;">EXPIRED</span>` : (st === 'near_ed' ? `<span class="badge-status" style="background:#fef08a; color:#92400e; border:1px solid #eab308;">NEAR ED</span>` : '');
-                let actionBtns = `<div class="d-flex justify-content-center gap-1"><button class="btn btn-sm btn-outline-warning text-dark fw-bold" onclick="transferBin('${currentEditSloc}', '${it.code}', '${it.batch}', ${qtyTotal})"><i class="fas fa-exchange-alt"></i> Pindah</button><button class="btn btn-sm btn-outline-danger fw-bold" onclick="outBin('${currentEditSloc}', '${it.code}', '${it.batch}', ${qtyTotal}, '${it.desc}')"><i class="fas fa-sign-out-alt"></i> Out</button></div>`;
-                body.innerHTML += `<tr class="${st === 'expired' ? 'text-expired' : ''}"><td><b style="font-size:14px;">${it.code}</b><br><span class="text-muted">${it.desc}</span></td><td class="fw-bold">${it.batch}</td><td class="text-primary fw-bold" style="font-size:16px;">${formatNum(qtyTotal)} <br>${extraBadge}</td><td><div class="status-wrapper"><span class="badge-status bg-alloc">${getBatchAllocation(it.batch)}</span> ${edBadge}</div></td><td class="align-middle">${actionBtns}</td></tr>`;
-            });
-        }
+        toggleBtn.innerHTML = 'MODE MANUAL'; toggleBtn.style.background = 'var(--orange)'; actions.style.display = 'none'; closeBtn.style.display = 'block';
+        head.innerHTML = `<tr><th>Material</th><th>Batch</th><th>Qty (KG)</th><th>Aksi</th></tr>`;
+        if (currentBinItems.length === 0) body.innerHTML = `<tr><td colspan="4" class="text-center py-4">Rak Kosong.</td></tr>`;
+        else { currentBinItems.forEach(it => { let qT = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); body.innerHTML += `<tr><td><b>${it.code}</b><br><small>${it.desc}</small></td><td>${it.batch}</td><td class="fw-bold">${formatNum(qT)}</td><td><button class="btn btn-sm btn-outline-warning" onclick="transferBin('${currentEditSloc}','${it.code}','${it.batch}',${qT})">Pindah</button></td></tr>`; }); }
     }
 }
 
-function getRowsData() { let rows = document.querySelectorAll('#binModalBody tr'), temp = []; rows.forEach(r => { if(r.querySelector('.i-code')) { temp.push({ code: r.querySelector('.i-code').value.trim(), desc: r.querySelector('.i-desc').value.trim(), batch: r.querySelector('.i-batch').value.trim().toUpperCase(), qty: parseFloat(r.querySelector('.i-qty').value) || 0, qInsp: 0, qBlock: 0, is_manual: true }); } }); return temp; }
-function addBinRow() { currentBinItems = getRowsData(); currentBinItems.push({code:'', desc:'', batch:'', qty:0, qInsp:0, qBlock:0, is_manual:true}); renderBinModal(); }
-function saveBinData() { if(!activeSessionDoc) { alert("⚠️ DITOLAK!\nKlik tombol MULAI SESI di menu atas terlebih dahulu."); return; } let newItems = getRowsData().filter(it => it.code !== ""); if (newItems.length > 0) { newItems.forEach(it => { activeSessionDetails.push({mat: it.code, desc: it.desc, batch: it.batch, qty: it.qty, source: "LUAR / ADJ", target: currentEditSloc, type: "INB"}); }); updateSessionCount(); inventory[currentEditSloc] = newItems; } else { delete inventory[currentEditSloc]; } updateMapData(); calculateAll(); closeBinModal(); }
-function closeBinModal() { document.getElementById('binModal').style.display = 'none'; isBinEditMode = false; }
-
-function transferBin(sloc, code, batch, maxQty) {
-    if(!activeSessionDoc) { alert("⚠️ DITOLAK!\nKlik tombol MULAI SESI di menu atas terlebih dahulu."); return; }
-    let targetBin = prompt(`PINDAH MATERIAL: ${code}\nDari Rak: ${sloc}\n\nMasukkan ALAMAT RAK TUJUAN (Contoh: L1-R1-C1):`); if(!targetBin) return; targetBin = targetBin.trim().toUpperCase();
-    let moveQty = prompt(`Berapa KG yang dipindah ke rak ${targetBin}?\n(Stok Tersedia: ${formatNum(maxQty)} KG)`, maxQty); if(!moveQty || isNaN(moveQty) || moveQty <= 0 || moveQty > maxQty) { alert("Dibatalkan atau Jumlah tidak valid."); return; } moveQty = parseFloat(moveQty);
-    let sItems = inventory[sloc]; let sIdx = sItems.findIndex(i => i.code === code && i.batch === batch); let itemToMove = JSON.parse(JSON.stringify(sItems[sIdx])); sItems[sIdx].qty = parseFloat(sItems[sIdx].qty) - moveQty; if(sItems[sIdx].qty <= 0) sItems.splice(sIdx, 1); if(sItems.length === 0) delete inventory[sloc];
-    if(!inventory[targetBin]) inventory[targetBin] = []; let tItems = inventory[targetBin]; let tIdx = tItems.findIndex(i => i.code === code && i.batch === batch); if(tIdx > -1) { tItems[tIdx].qty = parseFloat(tItems[tIdx].qty) + moveQty; } else { itemToMove.qty = moveQty; tItems.push(itemToMove); }
-    activeSessionDetails.push({mat: code, desc: itemToMove.desc, batch: batch, qty: moveQty, source: sloc, target: targetBin, type: "TRF"}); updateSessionCount(); showDetail(sloc); updateMapData(); calculateAll(); 
-}
-
-function outBin(sloc, code, batch, maxQty, desc) {
-    if(!activeSessionDoc) { alert("⚠️ DITOLAK!\nKlik tombol MULAI SESI terlebih dahulu."); return; }
-    let outQty = prompt(`KELUAR BARANG (DIRECT OUT)\nMaterial: ${code}\nDari Rak: ${sloc}\n\nBerapa KG yang dikeluarkan? (Stok: ${formatNum(maxQty)} KG)`, maxQty); if(!outQty || isNaN(outQty) || outQty <= 0 || outQty > maxQty) return; outQty = parseFloat(outQty);
-    let sItems = inventory[sloc]; let sIdx = sItems.findIndex(i => i.code === code && i.batch === batch); sItems[sIdx].qty = parseFloat(sItems[sIdx].qty) - outQty; if(sItems[sIdx].qty <= 0) sItems.splice(sIdx, 1); if(sItems.length === 0) delete inventory[sloc];
-    activeSessionDetails.push({mat: code, desc: desc, batch: batch, qty: outQty, source: sloc, target: "LUAR", type: "OUT"}); updateSessionCount(); showDetail(sloc); updateMapData(); calculateAll();
-}
-
-let mapBuilt = false;
 function buildMapSkeleton() {
-    const container = document.getElementById('warehouse'); if(!container) return; container.innerHTML = ''; const fragment = document.createDocumentFragment(); 
+    const container = document.getElementById('warehouse'); if(!container) return; container.innerHTML = '';
     for (let l = 1; l <= 7; l++) {
-        const section = document.createElement('div'); section.className = 'lorong-section'; section.innerHTML = `<h5 class="fw-bold mb-3 text-secondary">LORONG H${l}</h5>`; const grid = document.createElement('div'); grid.className = 'bin-grid'; grid.appendChild(createBox('', 'bin-header vert-label')); for(let c=1; c<=24; c++) grid.appendChild(createBox(headers[`L${l}-C${c}`] || String.fromCharCode(64+c), 'bin-header', `L${l}-C${c}`, 'header'));
-        for (let r = 1; r <= 10; r++) {
-            let vK = `L${l}-V${r}`; grid.appendChild(createBox(vert[vK] || r, 'vert-label', vK, 'vert'));
-            for (let c = 1; c <= 24; c++) {
-                const bKey = `L${l}-R${r}-C${c}`, addr = layout[bKey] || ''; const box = document.createElement('div'); box.className = 'bin-box'; box.id = `BOX-${bKey}`; box.dataset.addr = addr; 
-                if (editMode) { const i = document.createElement('input'); i.value = addr; i.style="width:100%; border:none; text-align:center; padding:0; font-size:10px; font-weight:bold;"; i.onchange = (e) => layout[bKey] = e.target.value.toUpperCase(); box.appendChild(i); } else { if(addr) box.classList.add('has-data'); else box.style.opacity = "0.2"; box.innerHTML = `<span class="bin-addr">${addr}</span><b class="bin-qty"></b>`; } grid.appendChild(box);
+        const sec = document.createElement('div'); sec.className = 'lorong-section'; sec.innerHTML = `<h5 class="fw-bold text-secondary">LORONG H${l}</h5>`; const grid = document.createElement('div'); grid.className = 'bin-grid'; grid.appendChild(createBox('', 'bin-header vert-label'));
+        for(let c=1; c<=24; c++) grid.appendChild(createBox(headers[`L${l}-C${c}`] || String.fromCharCode(64+c), 'bin-header', `L${l}-C${c}`, 'header'));
+        for (let r = 1; r <= 10; r++) { grid.appendChild(createBox(vert[`L${l}-V${r}`] || r, 'vert-label', `L${l}-V${r}`, 'vert'));
+            for (let c = 1; c <= 24; c++) { const bK = `L${l}-R${r}-C${c}`, addr = layout[bK] || '', box = document.createElement('div'); box.className = 'bin-box'; box.id = `BOX-${bK}`; box.dataset.addr = addr; 
+                if (editMode) { const i = document.createElement('input'); i.value = addr; i.onchange = (e) => layout[bK] = e.target.value.toUpperCase(); box.appendChild(i); } else { if(addr) box.classList.add('has-data'); else box.style.opacity = "0.2"; box.innerHTML = `<span class="bin-addr">${addr}</span><b class="bin-qty"></b>`; } grid.appendChild(box);
             }
-        } section.appendChild(grid); fragment.appendChild(section);
+        } sec.appendChild(grid); container.appendChild(sec);
     }
-    container.appendChild(fragment); if(!editMode) { container.addEventListener('click', function(e) { const box = e.target.closest('.bin-box.has-data'); if(box && box.dataset.addr) showDetail(box.dataset.addr); }); } mapBuilt = true;
-}
-
-function updateDash(stats, f, t, openPallets, openDetails) {
-    let totalIsi = f + openPallets; let totalKosong = Math.max(0, t - f); let finalPct = t > 0 ? Math.round((totalIsi / t) * 100) : 0;
-    let html = `<div class="summary-card total-card shadow-sm ${finalPct > 85 ? 'card-alert' : ''}"><span class="summary-label text-primary">UTILISASI TOTAL</span><span class="summary-val">${finalPct}%</span><div class="d-flex justify-content-between mt-3 pt-2 border-top" style="font-size:11px;"><span>Rak Isi: <b class="text-dark">${f}</b></span><span class="text-primary">Open: <b>${openPallets} Plt</b></span><span>Kosong: <b class="text-dark">${totalKosong}</b></span></div></div>`;
-    let div_1002 = settings.div_1002 || 350; html += `<div class="summary-card shadow-sm clickable-widget" style="border-top-color:#3b82f6; background: #eff6ff;" onclick="openDivisorModal('1002')"><span class="summary-label text-primary">OPEN 1002</span><span class="summary-val text-primary" style="font-size:22px;">${openDetails['1002'].plt} <small style="font-size:11px;">PLT</small></span><div class="text-center mt-2 pt-2 border-top border-primary" style="font-size:10px; opacity:0.8;"><b>${formatNum(openDetails['1002'].kg)}</b> KG<br>(1 Plt = ${div_1002} KG)</div></div>`;
-    let div_1003 = settings.div_1003 || 350; html += `<div class="summary-card shadow-sm clickable-widget" style="border-top-color:#8b5cf6; background: #f5f3ff;" onclick="openDivisorModal('1003')"><span class="summary-label" style="color:#6d28d9;">OPEN 1003</span><span class="summary-val" style="font-size:22px; color:#6d28d9;">${openDetails['1003'].plt} <small style="font-size:11px;">PLT</small></span><div class="text-center mt-2 pt-2 border-top" style="font-size:10px; opacity:0.8; border-color:#c4b5fd !important;"><b>${formatNum(openDetails['1003'].kg)}</b> KG<br>(1 Plt = ${div_1003} KG)</div></div>`;
-    const colors = ['#a0c4ff', '#69db7c', '#ffa94d', '#bdb2ff', '#ffadad', '#67e8f9', '#fde047'];
-    for(let i=1; i<=7; i++) { let p = stats[i].t > 0 ? Math.round((stats[i].f / stats[i].t) * 100) : 0; html += `<div class="summary-card shadow-sm ${p >= 85 ? 'card-alert' : ''}" ${p < 85 ? 'style="border-top-color:'+colors[(i-1)%7]+';"' : ''}><span class="summary-label">Blok H${i}</span><span class="summary-val">${p}%</span><div class="d-flex justify-content-between mt-3 pt-2 border-top" style="font-size:10px;"><span>Isi: <b>${stats[i].f}</b></span><span>Ksg: <b>${stats[i].t - stats[i].f}</b></span></div></div>`; }
-    document.getElementById('dashSummary').innerHTML = html;
+    if(!editMode) container.onclick = (e) => { const b = e.target.closest('.bin-box.has-data'); if(b) showDetail(b.dataset.addr); }; mapBuilt = true;
 }
 
 function updateMapData() {
     if (!mapBuilt || editMode) buildMapSkeleton(); if (editMode) return;
-    let fCount = 0, tCount = 0, bStats = {}; for(let i=1; i<=7; i++) bStats[i] = {f:0, t:0};
-    let openPallets = 0; let openDetails = { '1002': {kg: 0, plt: 0}, '1003': {kg: 0, plt: 0} }; slocStatsData = {};
-
+    let bStats = {}; for(let i=1; i<=7; i++) bStats[i] = {f:0, t:0}; let oPlt = 0, oDet = { '1002': {kg: 0, plt: 0}, '1003': {kg: 0, plt: 0} }, fC = 0, tC = 0; slocStatsData = {};
     Object.keys(inventory).forEach(addr => {
-        let items = inventory[addr] || []; let total = 0, binStatus = 'normal', hasManual = false, hasBlock = false; let distinctMats = new Set();
-        items.forEach(it => {
-            let qty = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); total += qty; distinctMats.add(it.code);
-            if(parseFloat(it.qBlock) > 0) hasBlock = true; let mStat = checkExpired(it.batch);
-            if(mStat === 'expired') binStatus = 'expired'; else if(mStat === 'near_ed' && binStatus !== 'expired') binStatus = 'near_ed';
-            if(it.is_manual) hasManual = true;
-        });
-        slocStatsData[addr] = { total, binStatus, hasManual, distMats: distinctMats.size, hasBlock }; let sCode = addr.toString().trim();
-        if((sCode.includes('1002') || sCode.includes('1003')) && total > 0) { let key = sCode.includes('1002') ? '1002' : '1003'; let divisor = settings[`div_${key}`] || 350; let p = Math.ceil(total / divisor); openPallets += p; openDetails[key].kg += total; openDetails[key].plt += p; }
+        let items = inventory[addr] || [], total = 0, st = 'normal', hM = false, hB = false, dM = new Set();
+        items.forEach(it => { let q = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); total += q; dM.add(it.code); if(parseFloat(it.qBlock)>0) hB=true; let mS = checkExpired(it.batch); if(mS==='expired') st='expired'; else if(mS==='near_ed' && st!=='expired') st='near_ed'; if(it.is_manual) hM=true; });
+        slocStatsData[addr] = { total, st, hM, dist: dM.size, hB }; let s = addr.toString();
+        if(s.includes('1002') || s.includes('1003')) { let k = s.includes('1002') ? '1002' : '1003', d = settings[`div_${k}`] || 350, p = Math.ceil(total / d); oPlt += p; oDet[k].kg += total; oDet[k].plt += p; }
     });
-
-    for (let l = 1; l <= 7; l++) {
-        for (let r = 1; r <= 10; r++) {
-            for (let c = 1; c <= 24; c++) {
-                const bKey = `L${l}-R${r}-C${c}`; const addr = layout[bKey] || ''; if (!addr) continue; bStats[l].t++; tCount++; const box = document.getElementById(`BOX-${bKey}`); if(!box) continue;
-                box.className = 'bin-box has-data'; box.style.opacity = "1"; if (recommendedSlocs.includes(addr)) box.classList.add('highlight-pick');
-                const stats = slocStatsData[addr]; let qtyText = '';
-                if (stats && stats.total > 0) {
-                    bStats[l].f++; fCount++; qtyText = formatNum(stats.total);
-                    if(stats.binStatus === 'expired') box.classList.add('is-expired', 'text-expired'); else if(stats.hasBlock) box.classList.add('occ-blok'); else if(stats.binStatus === 'near_ed') box.classList.add('is-warning'); else if(stats.distMats > 1) box.classList.add('occ-purple'); else if(stats.total > 700) box.classList.add('occ-red'); else if(stats.total > 0 && stats.total < 400) box.classList.add('occ-orange'); else if(stats.total >= 400) box.classList.add('occ-green');
-                }
-                let qtyB = box.querySelector('.bin-qty'); if(qtyB) qtyB.innerText = qtyText; let dot = box.querySelector('.manual-dot');
-                if (stats && stats.hasManual) { box.classList.add('box-manual'); if(!dot) box.insertAdjacentHTML('beforeend', `<div class="manual-dot"></div>`); } else { if(dot) dot.remove(); }
-            }
-        }
-    } updateDash(bStats, fCount, tCount, openPallets, openDetails);
+    for (let l = 1; l <= 7; l++) { for (let r = 1; r <= 10; r++) { for (let c = 1; c <= 24; c++) {
+        const bK = `L${l}-R${r}-C${c}`, addr = layout[bK] || ''; if (!addr) continue; bStats[l].t++; tC++; const box = document.getElementById(`BOX-${bK}`); if(!box) continue; box.className = 'bin-box has-data'; box.style.opacity = "1"; if (recommendedSlocs.includes(addr)) box.classList.add('highlight-pick');
+        const s = slocStatsData[addr]; if (s && s.total > 0) { bStats[l].f++; fC++; box.querySelector('.bin-qty').innerText = formatNum(s.total); if(s.st==='expired') box.classList.add('is-expired','text-expired'); else if(s.hB) box.classList.add('occ-blok'); else if(s.st==='near_ed') box.classList.add('is-warning'); else if(s.dist>1) box.classList.add('occ-purple'); else if(s.total>700) box.classList.add('occ-red'); else if(s.total>0 && s.total<400) box.classList.add('occ-orange'); else box.classList.add('occ-green'); }
+        if (s && s.hM) { box.classList.add('box-manual'); if(!box.querySelector('.manual-dot')) box.insertAdjacentHTML('beforeend', `<div class="manual-dot"></div>`); }
+    }}} updateDash(bStats, fC, tC, oPlt, oDet);
 }
 
-function initMap() { buildMapSkeleton(); updateMapData(); }
-function createBox(v, c, k, t) { const b = document.createElement('div'); b.className = 'bin-box ' + c; if(editMode && k) { const i = document.createElement('input'); i.value = v; i.style="width:100%; border:none; text-align:center; padding:0; font-weight:bold;"; i.onchange = (e) => { if(t==='vert') vert[k]=e.target.value.toUpperCase(); else headers[k]=e.target.value.toUpperCase(); }; b.appendChild(i); } else b.innerText = v; return b; }
-
-function filterLegend(type) {
-    if (type === 'clear') { updateMapData(); document.getElementById('matSearch').value = ''; return; }
-    document.querySelectorAll('.bin-box.has-data').forEach(b => { b.classList.remove('highlight-find'); b.style.opacity = "0.2"; });
-    document.querySelectorAll('.bin-box.has-data').forEach(b => {
-        let addr = b.dataset.addr; let stats = slocStatsData[addr]; let match = false;
-        if (stats) { if (type === 'expired' && stats.binStatus === 'expired') match = true; if (type === 'near_ed' && stats.binStatus === 'near_ed') match = true; if (type === 'blok' && stats.hasBlock) match = true; if (type === 'full' && stats.total > 700) match = true; if (type === 'campuran' && stats.distMats > 1) match = true; if (type === 'normal' && stats.total >= 400 && stats.total <= 700) match = true; }
-        if (match) { b.style.opacity = "1"; b.classList.add('highlight-find'); }
-    });
+function updateDash(stats, f, t, oP, oD) {
+    let html = `<div class="summary-card total-card shadow-sm"><span>UTILISASI TOTAL</span><span class="summary-val">${t>0?Math.round(((f+oP)/t)*100):0}%</span><div class="d-flex justify-content-between mt-2 pt-2 border-top small"><span>Isi: ${f}</span><span>Open: ${oP} Plt</span><span>Ksg: ${Math.max(0,t-f)}</span></div></div>`;
+    ['1002','1003'].forEach(k => { html += `<div class="summary-card shadow-sm clickable-widget" style="border-top-color:#3b82f6;" onclick="openDivisorModal('${k}')"><span>OPEN ${k}</span><span class="summary-val">${oD[k].plt} Plt</span><div class="text-center mt-2 border-top small">${formatNum(oD[k].kg)} KG</div></div>`; });
+    for(let i=1; i<=7; i++) { let p = stats[i].t>0?Math.round((stats[i].f/stats[i].t)*100):0; html += `<div class="summary-card shadow-sm"><span>Blok H${i}</span><span class="summary-val">${p}%</span><div class="d-flex justify-content-between mt-2 border-top small"><span>Isi: ${stats[i].f}</span><span>Ksg: ${stats[i].t-stats[i].f}</span></div></div>`; }
+    document.getElementById('dashSummary').innerHTML = html;
 }
 
-function searchMap() { 
-    const q = document.getElementById('matSearch').value.toUpperCase(); document.querySelectorAll('.bin-box.has-data').forEach(b => { b.classList.remove('highlight-find'); b.style.opacity = "1"; }); if(!q) return; 
-    document.querySelectorAll('.bin-box.has-data').forEach(b => {
-        let addr = b.dataset.addr; if(!addr) return; let match = false; if(addr.toUpperCase().includes(q)) match = true;
-        let items = inventory[addr] || []; items.forEach(it => { if(String(it.code + " " + it.desc + " " + it.batch).toUpperCase().includes(q)) match = true; });
-        let stats = slocStatsData[addr]; if(stats) { if(q === 'EXPIRED' && stats.binStatus === 'expired') match = true; if(q === 'NEAR' && stats.binStatus === 'near_ed') match = true; if(q === 'BLOK' && stats.hasBlock) match = true; }
-        if(match) { b.classList.add('highlight-find'); b.style.opacity = "1"; } else { b.style.opacity = "0.2"; }
-    });
-}
+function buildMaterialMaster() { let s = new Set(); const dl = document.getElementById('listMaterialMaster'); dl.innerHTML = ''; Object.values(inventory).flat().forEach(it => { if(it.code && !s.has(it.code)) { s.add(it.code); let o = document.createElement('option'); o.value = it.code; o.innerText = it.desc; dl.appendChild(o); } }); }
+function createBox(v, c, k, t) { const b = document.createElement('div'); b.className = 'bin-box ' + c; if(editMode && k) { const i = document.createElement('input'); i.value = v; i.onchange = (e) => { if(t==='vert') vert[k]=e.target.value.toUpperCase(); else headers[k]=e.target.value.toUpperCase(); }; b.appendChild(i); } else b.innerText = v; return b; }
+function toggleMode() { editMode = !editMode; buildMapSkeleton(); updateMapData(); }
+function adjustZoom(a) { currentBoxSize = Math.min(120, Math.max(30, currentBoxSize + a)); let f = Math.max(8, Math.round(currentBoxSize/4.8)); document.documentElement.style.setProperty('--box-s', currentBoxSize+'px'); document.documentElement.style.setProperty('--box-f', f+'px'); }
+function toggleFullScreen() { const w = document.getElementById('mapWrapper'); w.classList.toggle('fullscreen-mode'); }
+function calculateAll() { buildMaterialMaster(); updateMapData(); renderLaporanStatus(); }
+function filterLegend(type) { if(type==='clear') { updateMapData(); return; } document.querySelectorAll('.bin-box.has-data').forEach(b => { let a = b.dataset.addr, s = slocStatsData[a], match = false; if(s) { if(type==='expired'&&s.st==='expired') match=true; if(type==='near_ed'&&s.st==='near_ed') match=true; if(type==='blok'&&s.hB) match=true; if(type==='full'&&s.total>700) match=true; if(type==='campuran'&&s.dist>1) match=true; if(type==='normal'&&s.total>=400&&s.total<=700) match=true; } b.style.opacity = match ? "1" : "0.2"; if(match) b.classList.add('highlight-find'); else b.classList.remove('highlight-find'); }); }
 
-function renderLaporanStatus() {
-    let tExp = 0, tNear = 0, tInsp = 0, tBlock = 0; let html = ""; let dataList = [];
-    Object.keys(inventory).forEach(sloc => {
-        inventory[sloc].forEach(it => {
-            let st = checkExpired(it.batch); let qBlock = parseFloat(it.qBlock) || 0; let qInsp = parseFloat(it.qInsp) || 0; let qUnre = parseFloat(it.qty) || 0; let qTot = qBlock + qInsp + qUnre; if (qTot <= 0) return; let isKritis = false;
-            if (st === 'expired') { tExp += qTot; isKritis = true; } else if (st === 'near_ed') { tNear += qTot; isKritis = true; }
-            if (qBlock > 0) { tBlock += qBlock; isKritis = true; } if (qInsp > 0) { tInsp += qInsp; isKritis = true; }
-            if (isKritis) { dataList.push({sloc: sloc, code: it.code, desc: it.desc, batch: it.batch, st: st, qBlock: qBlock, qInsp: qInsp, qUnre: qUnre}); }
-        });
-    });
-
-    document.getElementById('summaryQA').innerHTML = `<div class="col-md-3 col-6"><div class="stat-box shadow-sm border border-danger bg-white clickable-widget" onclick="showQADetail('expired')"><div class="stat-lbl text-danger mb-1">Total Expired</div><div class="stat-val text-danger">${formatNum(tExp)} <span class="fs-6">KG</span></div></div></div><div class="col-md-3 col-6"><div class="stat-box shadow-sm border border-warning bg-white clickable-widget" onclick="showQADetail('near_ed')"><div class="stat-lbl text-warning text-dark mb-1">Total Near ED</div><div class="stat-val text-warning text-dark">${formatNum(tNear)} <span class="fs-6">KG</span></div></div></div><div class="col-md-3 col-6"><div class="stat-box shadow-sm border border-info bg-white clickable-widget" onclick="showQADetail('insp')"><div class="stat-lbl text-info text-dark mb-1">Quality Insp</div><div class="stat-val text-info text-dark">${formatNum(tInsp)} <span class="fs-6">KG</span></div></div></div><div class="col-md-3 col-6"><div class="stat-box shadow-sm border border-dark bg-white clickable-widget" onclick="showQADetail('blok')"><div class="stat-lbl text-dark mb-1">Blok / Hold</div><div class="stat-val text-dark">${formatNum(tBlock)} <span class="fs-6">KG</span></div></div></div>`;
-
-    if(dataList.length === 0) { html = `<tr><td colspan="7" class="text-center py-5 text-success fw-bold"><i class="fas fa-check-circle fs-2 mb-2 d-block"></i>Gudang aman. Tidak ada material Kritis atau Karantina.</td></tr>`; } 
-    else { dataList.forEach(d => { let edBadge = '-'; if(d.st === 'expired') edBadge = `<span class="badge bg-danger shadow-sm">EXPIRED</span>`; else if(d.st === 'near_ed') edBadge = `<span class="badge bg-warning text-dark shadow-sm">NEAR ED</span>`; else edBadge = `<span class="badge bg-success shadow-sm">AMAN</span>`; html += `<tr><td class="fw-bold text-primary">${d.sloc}</td><td class="text-start"><b style="font-size:13px;">${d.code}</b><br><span class="text-muted small">${d.desc}</span></td><td class="fw-bold">${d.batch}</td><td>${edBadge}</td><td class="fw-bold ${d.qBlock > 0 ? 'text-danger fs-5' : 'text-muted opacity-50'}">${d.qBlock > 0 ? formatNum(d.qBlock) : '-'}</td><td class="fw-bold ${d.qInsp > 0 ? 'text-warning text-dark fs-5' : 'text-muted opacity-50'}">${d.qInsp > 0 ? formatNum(d.qInsp) : '-'}</td><td class="fw-bold ${d.qUnre > 0 ? 'text-success' : 'text-muted opacity-50'}">${d.qUnre > 0 ? formatNum(d.qUnre) : '-'}</td></tr>`; }); }
-    document.getElementById('bodyLaporanQA').innerHTML = html;
-}
-
-function showQADetail(cat) {
-    let title = ""; let html = "";
-    if(cat === 'expired') title = "<i class='fas fa-exclamation-triangle text-danger me-2'></i> Detail Stok Expired"; if(cat === 'near_ed') title = "<i class='fas fa-clock text-warning text-dark me-2'></i> Detail Stok Near ED"; if(cat === 'insp') title = "<i class='fas fa-search text-info me-2'></i> Detail Quality Inspection"; if(cat === 'blok') title = "<i class='fas fa-ban text-dark me-2'></i> Detail Blok / Hold";
-    document.getElementById('qaModalTitle').innerHTML = title;
-
-    Object.keys(inventory).forEach(sloc => {
-        inventory[sloc].forEach(it => {
-            let st = checkExpired(it.batch); let qBlock = parseFloat(it.qBlock) || 0; let qInsp = parseFloat(it.qInsp) || 0; let qUnre = parseFloat(it.qty) || 0; let qTot = qBlock + qInsp + qUnre; if(qTot <= 0) return; let show = false; let qtyToShow = 0;
-            if(cat === 'expired' && st === 'expired') { show = true; qtyToShow = qTot; } if(cat === 'near_ed' && st === 'near_ed') { show = true; qtyToShow = qTot; } if(cat === 'insp' && qInsp > 0) { show = true; qtyToShow = qInsp; } if(cat === 'blok' && qBlock > 0) { show = true; qtyToShow = qBlock; }
-            if(show) { html += `<tr><td class="fw-bold text-primary align-middle">${sloc}</td><td class="text-start"><b>${it.code}</b><br><small class="text-muted">${it.desc}</small></td><td class="align-middle">${it.batch}</td><td class="fw-bold text-dark fs-6 align-middle">${formatNum(qtyToShow)}</td></tr>`; }
-        });
-    });
-
-    if(!html) html = `<tr><td colspan="4" class="text-center py-5 text-muted"><i class="fas fa-box-open fs-3 opacity-50 mb-3 d-block"></i>Tidak ada material pada kategori ini.</td></tr>`;
-    document.getElementById('qaModalBody').innerHTML = html; document.getElementById('qaModal').style.display = 'block';
-}
-
-function exportLaporanQA() { const t = document.getElementById('tableQAExcel'); if(!t || t.innerText.includes('Gudang aman')) return alert("Data Kosong!"); let wb = XLSX.utils.table_to_book(t, {sheet:"Laporan QA"}); XLSX.writeFile(wb, `Laporan_Karantina_ED_${new Date().toISOString().slice(0,10)}.xlsx`); }
-
-function performLivePick(btn, sloc, code, batch, desc, maxQty) {
-    if(!activeSessionDoc) { alert("⚠️ DITOLAK!\nKlik tombol MULAI SESI PICKING terlebih dahulu."); return; }
-    let pickQty = prompt(`Berapa KG yang Anda ambil dari Rak ${sloc}?\nMaterial: ${code} (Batch: ${batch})\n\n(Rekomendasi / Maksimal: ${formatNum(maxQty)} KG)`, maxQty); if(!pickQty || isNaN(pickQty) || pickQty <= 0 || pickQty > maxQty) return; pickQty = parseFloat(pickQty);
-    let sItems = inventory[sloc]; let sIdx = sItems.findIndex(i => i.code === code && i.batch === batch);
-    if(sIdx > -1) { sItems[sIdx].qty = parseFloat(sItems[sIdx].qty) - pickQty; if(sItems[sIdx].qty <= 0) sItems.splice(sIdx, 1); if(sItems.length === 0) delete inventory[sloc]; activeSessionDetails.push({mat: code, desc: desc, batch: batch, qty: pickQty, source: sloc, target: "LUAR (PICKED)", type: "OUT"}); updateSessionCount(); btn.outerHTML = `<div class="badge bg-success p-2 shadow-sm text-center" style="font-size:12px;"><i class="fas fa-check-circle"></i> DIAMBIL (${formatNum(pickQty)} KG)</div>`; updateMapData(); }
-}
-
-function renderPickList() {
-    const matQ = document.getElementById('pickSearch').value.toUpperCase(); const targetQty = parseFloat(document.getElementById('targetInputQty').value) || 0; const allocQ = document.getElementById('allocFilter').value.toUpperCase(); const body = document.getElementById('pickBody');
-    if(!matQ && !allocQ) { body.innerHTML = ""; recommendedSlocs = []; updateMapData(); return; }
-    let list = []; Object.keys(inventory).forEach(s => inventory[s].forEach(it => { let alloc = getBatchAllocation(it.batch); let mStr = String(it.code + " " + it.desc).toUpperCase(); let unrestrictedQty = parseFloat(it.qty) || 0; if (unrestrictedQty > 0) { if((!matQ || mStr.includes(matQ)) && (!allocQ || alloc.toUpperCase().includes(allocQ))) { list.push({ ref: it, s, exp: parseDate(it.batch), alloc, qty: unrestrictedQty, batch: it.batch, code: it.code, desc: it.desc }); } } }));
-    list.sort((a,b) => a.exp - b.exp); let runningTotal = 0; recommendedSlocs = []; let html = `<table id="pickingTableExcel"><thead><tr><th>Expired Date</th><th>Batch</th><th>Lokasi (SLOC)</th><th>Stok Fisik (KG)</th><th>Akumulasi (KG)</th><th>Kode Material</th><th>Deskripsi Material</th><th>Alokasi</th><th class="text-center" style="background:#dcfce7; color:#166534; width: 140px;">Tindakan AMBIL</th></tr></thead><tbody>`;
-    list.forEach((p) => {
-        let isExp = p.exp < TODAY; let qtyToTake = 0;
-        if (targetQty > 0) { if (runningTotal < targetQty && !isExp) { let needed = targetQty - runningTotal; qtyToTake = (p.qty >= needed) ? needed : p.qty; runningTotal += qtyToTake; recommendedSlocs.push(p.s); } else { return; } } else { if (!isExp) { runningTotal += p.qty; recommendedSlocs.push(p.s); qtyToTake = p.qty; } }
-        let cRow = isExp ? "text-expired" : "row-pick"; let labelAmbil = (targetQty > 0 || !isExp) ? `<button class="btn btn-sm w-100 fw-bold shadow-sm" style="background-color:#166534; color:white;" onclick="performLivePick(this, '${p.s}', '${p.code}', '${p.batch}', '${p.desc}', ${qtyToTake})"><i class="fas fa-hand-holding-box me-1"></i> AMBIL ${formatNum(qtyToTake)}</button>` : '-'; if(isExp) { labelAmbil = '-'; }
-        html += `<tr class="${cRow}"><td>${p.exp.toLocaleDateString('id-ID')}</td><td class="fw-bold">${p.batch}</td><td class="fw-bold text-primary" style="font-size:14px;">${p.s}</td><td class="fw-bold" style="font-size:14px;">${formatNum(p.qty)}</td><td>${formatNum(runningTotal)}</td><td class="fw-bold">${p.code}</td><td>${p.desc}</td><td><span class="badge bg-light text-dark border">${p.alloc}</span></td><td class="text-center align-middle">${labelAmbil}</td></tr>`;
-    }); body.innerHTML = html + "</tbody></table>"; updateMapData();
-}
-
-let currentDocPage = 1; const docsPerPage = 15;
-function renderDocList(resetPage = false) {
-    if(resetPage) currentDocPage = 1; const search = document.getElementById('docSearch').value.toUpperCase(); const startD = document.getElementById('docStartDate').value; const endD = document.getElementById('docEndDate').value; const container = document.getElementById('docListContainer'); const pagination = document.getElementById('docPagination'); container.innerHTML = ""; pagination.innerHTML = ""; let docKeys = Object.keys(documents).sort((a,b) => parseInt(b) - parseInt(a));
-    let filteredDocs = docKeys.filter(docId => { let doc = documents[docId]; let matchSearch = !search || docId.toUpperCase().includes(search) || doc.tipe.toUpperCase().includes(search); let docDate = parseIdDate(doc.waktu); docDate.setHours(0,0,0,0); let matchStart = true, matchEnd = true; if(startD) { let sD = new Date(startD); sD.setHours(0,0,0,0); matchStart = docDate >= sD; } if(endD) { let eD = new Date(endD); eD.setHours(0,0,0,0); matchEnd = docDate <= eD; } return matchSearch && matchStart && matchEnd; });
-    let totalPages = Math.ceil(filteredDocs.length / docsPerPage) || 1; if(currentDocPage > totalPages) currentDocPage = totalPages; let pagedDocs = filteredDocs.slice((currentDocPage - 1) * docsPerPage, currentDocPage * docsPerPage);
-    pagedDocs.forEach(docId => {
-        let doc = documents[docId]; let icon = "fa-file-alt"; let color = "text-secondary"; if(doc.tipe.includes("TRANSFER")) { icon = "fa-exchange-alt"; color = "text-warning"; } else if(doc.tipe.includes("OUT") || doc.tipe.includes("PICKING")) { icon = "fa-arrow-up"; color = "text-danger"; } else if(doc.tipe.includes("IN")) { icon = "fa-arrow-down"; color = "text-success"; } else { icon = "fa-boxes"; color = "text-primary"; }
-        let item = document.createElement('div'); item.className = 'doc-item shadow-sm'; item.innerHTML = `<div class="d-flex justify-content-between align-items-center mb-1"><b class="text-dark">DOC-${docId}</b><span class="badge bg-light border ${color}"><i class="fas ${icon}"></i> ${doc.tipe}</span></div><div class="small text-muted"><i class="far fa-clock"></i> ${doc.waktu}</div>`; item.onclick = function() { document.querySelectorAll('.doc-item').forEach(el => el.classList.remove('active')); item.classList.add('active'); renderDocDetail(docId); }; container.appendChild(item);
-    });
-    if (filteredDocs.length === 0) { container.innerHTML = "<div class='text-center text-muted small py-3'>Tidak ada dokumen ditemukan.</div>"; } else if (totalPages > 1) { pagination.innerHTML = `<button class="btn btn-sm btn-outline-secondary ${currentDocPage === 1 ? 'disabled' : ''}" onclick="if(currentDocPage>1){currentDocPage--; renderDocList();}"><i class="fas fa-chevron-left"></i> Prev</button><span class="small text-muted fw-bold">Hal ${currentDocPage} dari ${totalPages}</span><button class="btn btn-sm btn-outline-secondary ${currentDocPage === totalPages ? 'disabled' : ''}" onclick="if(currentDocPage<${totalPages}){currentDocPage++; renderDocList();}"><i class="fas fa-chevron-right"></i> Next</button>`; }
-}
-
-function renderDocDetail(docId) {
-    let doc = documents[docId]; if(!doc) return; document.getElementById('docDetailTitle').innerHTML = `<i class="fas fa-file-signature text-primary me-2"></i> Rincian Dokumen: <span class="text-dark">DOC-${docId}</span>`; document.getElementById('docActionArea').innerHTML = `<button class="btn btn-sm btn-success shadow-sm fw-bold me-1" onclick="exportSingleDoc('${docId}')"><i class="fas fa-file-excel"></i> Export Excel</button><button class="btn btn-sm btn-danger shadow-sm fw-bold" onclick="deleteDocument('${docId}')"><i class="fas fa-trash-alt"></i> Hapus Arsip</button>`;
-    let html = `<div class="d-flex justify-content-between mb-3 border-bottom pb-2"><div><small class="text-muted d-block">Tipe Transaksi</small><b class="text-dark">${doc.tipe}</b></div><div class="text-end"><small class="text-muted d-block">Waktu Eksekusi</small><b class="text-dark">${doc.waktu}</b></div></div><table class="table table-sm table-bordered bg-white text-center align-middle"><thead class="table-light text-muted" style="font-size:11px;"><tr><th>Tipe</th><th>Kode</th><th>Deskripsi</th><th>Batch</th><th>Qty (KG)</th><th>Asal</th><th>Tujuan</th></tr></thead><tbody style="font-size:12px;">`;
-    doc.detail.forEach(d => { let badgeType = d.type === 'INB' ? 'bg-success' : (d.type === 'OUT' ? 'bg-danger' : 'bg-warning text-dark'); html += `<tr><td><span class="badge ${badgeType}">${d.type || '-'}</span></td><td class="fw-bold">${d.mat}</td><td>${d.desc}</td><td>${d.batch}</td><td class="fw-bold text-primary">${formatNum(d.qty)}</td><td><span class="badge bg-secondary">${d.source}</span></td><td><span class="badge bg-primary">${d.target}</span></td></tr>`; }); document.getElementById('docDetailBody').innerHTML = html + `</tbody></table>`;
-}
-
-function exportSingleDoc(docId) { let doc = documents[docId]; if(!doc) return; let data = [["No Dokumen", "Waktu Transaksi", "Tipe Transaksi", "Aksi", "Kode Material", "Deskripsi", "Batch", "Qty (KG)", "Lokasi Asal", "Lokasi Tujuan"]]; doc.detail.forEach(d => { data.push(["DOC-" + docId, doc.waktu, doc.tipe, d.type || "-", d.mat, d.desc, d.batch, d.qty, d.source || "-", d.target || "-"]); }); let ws = XLSX.utils.aoa_to_sheet(data); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Detail Dokumen"); XLSX.writeFile(wb, "Rincian_Dokumen_" + docId + ".xlsx"); }
-
-function calculateAnalisa() { updateBatchAnalysis(); renderTop10(); }
-function updateBatchAnalysis() {
-    let q = (document.getElementById('analisaSearch')?.value || "").toUpperCase(); let resum = {}; resum[defaultAllocName] = { q: 0, s: new Set(), items: {} }; batchDB.forEach(db => { if(db.c) resum[db.t] = { q: 0, s: new Set(), items: {} }; });
-    let grandTotal = 0; Object.keys(inventory).forEach(sloc => { inventory[sloc].forEach(it => { if (q && !String(it.code+" "+it.desc).toUpperCase().includes(q)) return; let target = getBatchAllocation(it.batch); if(!resum[target]) resum[target] = { q: 0, s: new Set(), items: {} }; let w = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); grandTotal += w; resum[target].q += w; resum[target].s.add(sloc); if(!resum[target].items[it.code]) resum[target].items[it.code] = { desc: it.desc, qty: 0 }; resum[target].items[it.code].qty += w; }); });
-    const badge = document.getElementById('grandTotalBadge'); if(badge) badge.innerText = formatNum(grandTotal);
-    let html = "<table id='analisaTableExcel'><thead><tr><th>Alokasi</th><th>Total Stok</th><th>Rak</th><th>Kode Material</th><th>Deskripsi Material</th><th>Total KG</th></tr></thead><tbody>"; Object.entries(resum).forEach(([target, data]) => { if(data.q <= 0) return; let itemEntries = Object.entries(data.items).sort((a,b) => b[1].qty - a[1].qty); itemEntries.forEach((item, index) => { html += `<tr>`; if (index === 0) html += `<td rowspan="${itemEntries.length}" class="fw-bold text-primary align-top" style="font-size:14px;">${target}</td><td rowspan="${itemEntries.length}" class="fw-bold align-top" style="font-size:14px;">${formatNum(data.q)}</td><td rowspan="${itemEntries.length}" class="align-top">${data.s.size} Titik</td>`; html += `<td class="fw-bold">${item[0]}</td><td class="text-muted">${item[1].desc}</td><td class="fw-bold text-end" style="font-size:14px;">${formatNum(item[1].qty)}</td></tr>`; }); }); document.getElementById('batchResumBody').innerHTML = html + "</tbody></table>";
-}
-
-function renderTop10() { let q = (document.getElementById('analisaSearch')?.value || "").toUpperCase(); let m = {}; Object.values(inventory).flat().forEach(it => { if (q && !String(it.code+" "+it.desc).toUpperCase().includes(q)) return; if(!m[it.code]) m[it.code] = {n: it.desc, q:0}; m[it.code].q += (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); }); let s = Object.entries(m).sort((a,b) => b[1].q - a[1].q).slice(0,10); document.getElementById('top10Body').innerHTML = "<table><thead><tr><th>Material</th><th>Qty Total</th></tr></thead><tbody>" + s.map(x => `<tr><td><b style="font-size:13px;">${x[0]}</b><br><span class="text-muted">${x[1].n}</span></td><td class="fw-bold text-primary" style="font-size:14px;">${formatNum(x[1].q)} KG</td></tr>`).join('') + "</tbody></table>"; }
-
-function renderBatchDB() { document.getElementById('batchDBBody').innerHTML = "<table><thead><tr><th>Batch SAP</th><th>Alokasi</th><th>Aksi</th></tr></thead><tbody>" + batchDB.map((it, i) => `<tr><td><input class="form-control" value="${it.c}" onchange="batchDB[${i}].c=this.value.toUpperCase()"></td><td><input class="form-control" value="${it.t}" onchange="batchDB[${i}].t=this.value.toUpperCase()"></td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="batchDB.splice(${i},1);renderBatchDB()"><i class="fas fa-trash"></i></button></td></tr>`).join('') + "</tbody></table>"; }
-function addBatchRow() { batchDB.push({c:'', t:''}); renderBatchDB(); }
-function toggleMode() { editMode = !editMode; initMap(); }
-
-function processSAP() {
-    const raw = document.getElementById('excelInput').value.trim(); if(!raw) return; const lines = raw.split("\n"); const h = lines[0].toLowerCase().split("\t").map(x => x.trim());
-    let mI = h.findIndex(x => x.includes('material') && !x.includes('desc')); let dI = h.findIndex(x => x.includes('desc')); let sI = h.findIndex(x => x.includes('location') || x.includes('sloc') || x.includes('bin')); let bI = h.indexOf('batch'); let uI = h.findIndex(x => x.includes('unrestricted') || x.includes('qty')); let iI = h.findIndex(x => x.includes('insp')); let blI = h.findIndex(x => x.includes('block')); let startIndex = 1; if(mI === -1 && uI === -1) { startIndex = 0; mI=0; dI=1; sI=2; bI=3; uI=4; iI=5; blI=6; } else { if(mI===-1) mI=0; if(dI===-1) dI=1; if(sI===-1) sI=2; if(bI===-1) bI=3; if(uI===-1) uI=4; if(iI===-1) iI=5; if(blI===-1) blI=6; }
-    let newInv = {}; let rowCount = 0;
-    for (let i = startIndex; i < lines.length; i++) {
-        if(!lines[i].trim()) continue; const c = lines[i].split("\t"); if(!c[mI] || c[mI].trim() === '') continue; const sloc = c[sI] ? String(c[sI]).trim().toUpperCase() : 'UNASSIGNED'; const parseNum = (v) => { if(!v) return 0; let clean = String(v).trim().replace(/[^\d,\.-]/g, ''); if(clean.includes(',') && clean.includes('.')) { if(clean.lastIndexOf(',') > clean.lastIndexOf('.')) clean = clean.replace(/\./g, '').replace(',', '.'); else clean = clean.replace(/,/g, ''); } else if(clean.includes(',')) clean = clean.replace(',', '.'); return parseFloat(clean) || 0; };
-        if(!newInv[sloc]) newInv[sloc] = []; newInv[sloc].push({ code: String(c[mI]).trim().toUpperCase(), desc: c[dI] ? c[dI].trim() : '-', batch: c[bI] ? String(c[bI]).trim().toUpperCase() : '-', qty: parseNum(c[uI]), qInsp: parseNum(c[iI]), qBlock: parseNum(c[blI]), is_manual: false }); rowCount++;
-    }
-    if(rowCount > 0) { inventory = newInv; calculateAll(); alert(`✅ Berhasil memproses ${rowCount} baris data.\nIndikator Edit Manual sudah otomatis dibersihkan.`); document.getElementById('excelInput').value = ''; } else alert("❌ Gagal memproses! Format tidak dikenali.");
-}
-
-function exportPickingToExcel() { const t = document.getElementById('pickingTableExcel'); if(!t) return alert("Data Kosong!"); let cloneTable = t.cloneNode(true); let rows = cloneTable.rows; for(let i=0; i<rows.length; i++) { if(rows[i].cells.length > 4) rows[i].deleteCell(4); } let wb = XLSX.utils.table_to_book(cloneTable, {sheet:"Picking List"}); XLSX.writeFile(wb, `Picking_List_${new Date().toISOString().slice(0,10)}.xlsx`); }
-function exportAnalisaToExcel() { const t = document.getElementById('analisaTableExcel'); if(!t) return alert("Data Kosong!"); let wb = XLSX.utils.table_to_book(t, {sheet:"Analisa Alokasi"}); XLSX.writeFile(wb, `Analisa_Stok_${new Date().toISOString().slice(0,10)}.xlsx`); }
-function exportInventoryToExcel() { let data = [["Lokasi / Rak", "Kode Material", "Deskripsi Material", "Batch", "Total Qty (KG)", "Alokasi Dept"]]; Object.keys(inventory).forEach(s => { inventory[s].forEach(i => { let totalQty = (parseFloat(i.qty)||0)+(parseFloat(i.qInsp)||0)+(parseFloat(i.qBlock)||0); data.push([s, i.code, i.desc, i.batch, totalQty, getBatchAllocation(i.batch)]); }); }); if (data.length === 1) return alert("Stok Kosong!"); let ws = XLSX.utils.aoa_to_sheet(data); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Stok Fisik"); XLSX.writeFile(wb, `Data_Stok_Fisik_${new Date().toISOString().slice(0,10)}.xlsx`); }
-
-function searchMultiBin() {
-    const input = document.getElementById('multiBinInput').value.toUpperCase(); if(!input.trim()) return; const targets = input.split(/[\s,]+/).filter(x => x); let html = `<table class="table table-bordered text-center"><thead class="bg-light"><tr><th>Alamat Rak (SLOC)</th><th>Status</th><th>Total Qty (KG)</th><th>Rincian Material</th></tr></thead><tbody>`;
-    targets.forEach(t => { let items = inventory[t]; if(!items || items.length === 0) { html += `<tr><td class="fw-bold">${t}</td><td><span class="badge bg-secondary">KOSONG</span></td><td>-</td><td class="text-muted">Tidak ada stok</td></tr>`; } else { let total = 0; let detailHtml = ""; items.forEach(it => { let q = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); total += q; detailHtml += `<div class="mb-1 border-bottom pb-1"><b>${it.code}</b> (${it.batch}): <span class="text-primary">${formatNum(q)} KG</span></div>`; }); html += `<tr><td class="fw-bold">${t}</td><td><span class="badge bg-success">TERISI</span></td><td class="fw-bold fs-5">${formatNum(total)}</td><td class="text-start" style="font-size:11px;">${detailHtml}</td></tr>`; } });
-    document.getElementById('multiBinResult').innerHTML = html + "</tbody></table>";
-}
-
-function calculateAll() { buildMaterialMaster(); initMap(); renderPickList(); calculateAnalisa(); renderDocList(); renderBatchDB(); renderLaporanStatus(); }
+// Eksekusi ketika halaman dimuat
+window.onload = loadDataFromCloud;
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
