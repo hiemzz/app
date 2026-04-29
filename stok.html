@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WMS Monitoring - RPA Cikupa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        /* Masukkan CSS asli kamu dari stok.php di sini */
+        :root { --bg-color: #f4f7f6; --card-bg: #ffffff; }
+        body { background-color: var(--bg-color); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .map-container { display: flex; flex-wrap: wrap; gap: 10px; padding: 20px; background: #fff; border-radius: 8px; }
+        .bin { width: 60px; height: 60px; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; cursor: pointer; color: #fff; position: relative; transition: transform 0.2s; }
+        .bin:hover { transform: scale(1.1); z-index: 10; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        /* Tambahkan sisa CSS kamu lainnya ... */
+    </style>
+</head>
+<body>
+
+<div class="container-fluid mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 bg-white p-3 rounded shadow-sm">
+        <div>
+            <h4 class="mb-0"><i class="bi bi-box-seam me-2 text-primary"></i>WMS MONITORING RPA CIKUPA</h4>
+            <small class="text-muted" id="lastUpdateText">Menghubungkan ke Supabase Cloud...</small>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-outline-primary" onclick="syncServer()"><i class="bi bi-cloud-upload me-1"></i>Sync Cloud</button>
+            <button class="btn btn-outline-danger" onclick="location.reload()"><i class="bi bi-arrow-clockwise"></i></button>
+        </div>
+    </div>
+
+    <ul class="nav nav-pills mb-3 bg-white p-2 rounded shadow-sm" id="pills-tab" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-map">PETA GUDANG</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-sap">UPDATE SAP</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-tracing">TRACING DOC</button></li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="tab-map">
+            <div class="row">
+                <div class="col-md-9">
+                    <div id="mapView" class="map-container shadow-sm border"></div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-body">
+                            <h6><i class="bi bi-search me-2"></i>Cari Material</h6>
+                            <input type="text" id="searchInp" class="form-control" placeholder="Kode / Desc / Batch..." onkeyup="initMap()">
+                        </div>
+                    </div>
+                    <div id="binDetail" class="card shadow-sm" style="display:none;">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <span id="detailTitle">Detail Bin</span>
+                            <button class="btn-close btn-close-white" onclick="closeDetail()"></button>
+                        </div>
+                        <div class="card-body" id="detailContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-sap">
+            <div class="card p-4">
+                <h5>Update Data dari SAP</h5>
+                <p class="text-muted">Copy data dari Excel SAP (Kolom Sloc s/d Blocked), lalu paste di bawah:</p>
+                <textarea id="sapInput" class="form-control mb-3" rows="10" placeholder="Paste di sini..."></textarea>
+                <button class="btn btn-success" onclick="processSAP()">Proses Data</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="koneksi.js"></script>
+<script>
+    // Inisialisasi variabel global sama seperti stok.php kamu
+    let inventory = {};
+    let layout = {};
+    let appData = {};
+
+    // Fungsi Load Data Awal dari Supabase
+    async function loadData() {
+        document.getElementById('lastUpdateText').innerText = "Mengambil data...";
+        
+        // Ambil Inventory
+        const { data: inv, error: err1 } = await supabase.from('inventory').select('*');
+        // Ambil Config (Layout, dll)
+        const { data: conf, error: err2 } = await supabase.from('app_config').eq('id', 'wms_settings').single();
+
+        if (inv) {
+            inventory = formatInventoryFromSupabase(inv);
+            if (conf) {
+                layout = conf.config_data.layout;
+                // Masukkan semua variabel layout asli kamu di sini
+            }
+            document.getElementById('lastUpdateText').innerText = "Cloud Sync: Aktif";
+            initMap(); // Jalankan fungsi gambar peta asli kamu
+        }
+    }
+
+    // Panggil fungsi muat data saat halaman terbuka
+    window.onload = loadData;
+
+    // --- PASTE SEMUA FUNGSI JAVASCRIPT ASLI DARI STOK.PHP DI SINI ---
+    // (Fungsi initMap, processSAP, searchMap, dll tetap sama)
+    
+    function initMap() {
+        // ... kode asli initMap kamu ...
+        console.log("Map diinisialisasi");
+    }
+
+    async function syncServer() {
+        // Ganti logic simpan ke file dengan ini:
+        const { error } = await supabase.from('app_config').upsert({
+            id: 'wms_settings',
+            config_data: { layout: layout, updated_at: new Date() }
+        });
+        
+        if(!error) alert("Berhasil Sinkron ke Supabase!");
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
