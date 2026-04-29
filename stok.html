@@ -101,7 +101,6 @@
 </nav>
 
 <div class="warehouse-pro-container">
-
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <h4 class="fw-bold m-0" style="color: var(--japfa-green) !important;"><i class="fas fa-cubes me-2"></i> Peta Stok Gudang</h4>
         <div class="badge bg-white text-dark border border-secondary shadow-sm px-3 py-2 rounded-pill" id="cloudStatus">
@@ -149,13 +148,13 @@
     <div id="tabMap" class="tab-content active">
         <div class="panel">
             <div class="action-grid">
-                <button class="btn-wp bg-primary" id="btnMulaiSesiMap" onclick="startSession()"><i class="fas fa-play"></i> <span>MULAI SESI</span></button>
-                <button class="btn-wp" style="background:var(--orange); color:#7c2d12;" onclick="toggleMode()"><i class="fas fa-cog"></i> <span>EDIT RAK</span></button>
-                <button class="btn-wp" style="background:var(--blue);" onclick="syncServer()"><i class="fas fa-save"></i> <span>SIMPAN CLOUD</span></button>
-                <button class="btn-wp" style="background:var(--green); color:#14532d;" onclick="processSAP()"><i class="fas fa-bolt"></i> <span>PROSES SAP</span></button>
-                <button class="btn-wp" style="background:#10b981;" onclick="exportInventoryToExcel()"><i class="fas fa-file-excel"></i> <span>EXCEL</span></button>
-                <button class="btn-wp" style="background:var(--dark);" onclick="exportData()"><i class="fas fa-box"></i> <span>BACKUP</span></button>
-                <button class="btn-wp" style="background:#64748b;" onclick="document.getElementById('fileInput').click()"><i class="fas fa-upload"></i> <span>RESTORE</span></button>
+                <button class="btn-wp bg-primary" id="btnMulaiSesiMap" onclick="startSession()"><i class="fas fa-play"></i> MULAI SESI</button>
+                <button class="btn-wp" style="background:var(--orange); color:#7c2d12;" onclick="toggleMode()"><i class="fas fa-cog"></i> EDIT RAK</button>
+                <button class="btn-wp" style="background:var(--blue);" onclick="syncServer()"><i class="fas fa-save"></i> SIMPAN CLOUD</button>
+                <button class="btn-wp" style="background:var(--green); color:#14532d;" onclick="processSAP()"><i class="fas fa-bolt"></i> PROSES SAP</button>
+                <button class="btn-wp" style="background:#10b981;" onclick="exportInventoryToExcel()"><i class="fas fa-file-excel"></i> EXCEL</button>
+                <button class="btn-wp" style="background:var(--dark);" onclick="exportData()"><i class="fas fa-box"></i> BACKUP</button>
+                <button class="btn-wp" style="background:#64748b;" onclick="document.getElementById('fileInput').click()"><i class="fas fa-upload"></i> RESTORE</button>
                 <input type="file" id="fileInput" style="display:none" onchange="importData(event)">
             </div>
             <div class="row g-2">
@@ -186,9 +185,7 @@
             <div class="row g-3 mb-4" id="summaryQA"></div>
             <div class="table-responsive">
                 <table class="table table-hover table-bordered align-middle text-center" id="tableQAExcel">
-                    <thead class="table-light">
-                        <tr><th class="text-primary">Rak</th><th>Material</th><th>Batch</th><th>Status ED</th><th class="text-danger">Qty Blok</th><th class="text-warning text-dark">Qty Insp</th><th class="text-success">Stok Aman</th></tr>
-                    </thead>
+                    <thead class="table-light"><tr><th class="text-primary">Rak</th><th>Material</th><th>Batch</th><th>Status ED</th><th class="text-danger">Qty Blok</th><th class="text-warning text-dark">Qty Insp</th><th class="text-success">Stok Aman</th></tr></thead>
                     <tbody id="bodyLaporanQA"></tbody>
                 </table>
             </div>
@@ -321,20 +318,12 @@ let settings = { div_1002: 350, div_1003: 350 };
 let editMode = false, recommendedSlocs = [], currentEditSloc = "", isBinEditMode = false, currentBinItems = [], slocStatsData = {}; 
 const TODAY = new Date();
 
-// ==========================================
-// 1. FUNGSI SINKRONISASI CLOUD (ANTI-HANG)
-// ==========================================
+// 1. SUPABASE SYNC
 async function loadDataFromCloud() {
     try {
-        // Cek apakah file koneksi.js berhasil terbaca oleh browser
-        if (typeof dbCloud === 'undefined') {
-            throw new Error("File koneksi.js gagal dimuat! Harap hapus Cache browser (CTRL + SHIFT + R).");
-        }
-
+        if (typeof dbCloud === 'undefined') throw new Error("koneksi.js gagal dimuat.");
         const { data: config, error } = await dbCloud.from('app_config').select('config_data').eq('id', 'wms_settings').maybeSingle();
-        
-        if (error) throw error; // Lempar error ke blok catch agar loading berhenti
-
+        if (error) throw error;
         if (config && config.config_data) {
             let d = config.config_data;
             layout = d.layout || {}; headers = d.headers || {}; inventory = d.inventory || {};
@@ -346,110 +335,84 @@ async function loadDataFromCloud() {
         }
     } catch (e) {
         document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-times-circle text-danger me-1"></i> Error Koneksi';
-        console.error("Error Load Supabase:", e.message);
-        alert("Gagal terhubung ke database. Pesan error: " + e.message);
+        console.error(e.message);
     }
-    
     if(document.getElementById('defaultAllocName')) document.getElementById('defaultAllocName').value = defaultAllocName;
-    calculateAll(); // Akan selalu jalan agar peta tidak nge-blank
+    calculateAll();
 }
 
 async function syncServer() {
     document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-spinner fa-spin text-primary me-1"></i> Menyimpan...';
     if(document.getElementById('defaultAllocName')) defaultAllocName = document.getElementById('defaultAllocName').value.toUpperCase();
     let payload = { layout, headers, inventory, vert, batchDB, defaultAlloc: defaultAllocName, documents, lastDocNum, settings };
-    
     if (typeof dbCloud === 'undefined') return alert("Gagal Simpan: Koneksi Supabase Terputus.");
-
     const { error } = await dbCloud.from('app_config').upsert({ id: 'wms_settings', config_data: payload });
-    if (error) { 
-        alert("Gagal Simpan: " + error.message); 
-        document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-times-circle text-danger me-1"></i> Gagal Menyimpan';
-    } else { 
-        alert("Data Berhasil Disinkronkan ke Cloud!"); 
-        location.reload(); 
-    }
+    if (error) { alert("Gagal Simpan: " + error.message); document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-times-circle text-danger me-1"></i> Gagal Menyimpan'; } 
+    else { alert("Data Berhasil Disinkronkan ke Cloud!"); location.reload(); }
 }
 
-// ==========================================
-// 2. FUNGSI BACKUP & RESTORE
-// ==========================================
-function exportData() { 
-    const a = document.createElement('a'); 
-    a.href = URL.createObjectURL(new Blob([JSON.stringify({layout, headers, inventory, vert, batchDB, defaultAlloc: defaultAllocName, documents, lastDocNum, settings})], {type:"application/json"})); 
-    a.download="warehouse_backup.json"; a.click(); 
-}
+// 2. BACKUP & RESTORE
+function exportData() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify({layout, headers, inventory, vert, batchDB, defaultAlloc: defaultAllocName, documents, lastDocNum, settings})], {type:"application/json"})); a.download="warehouse_backup.json"; a.click(); }
+function importData(e) { const r = new FileReader(); r.onload = (ev) => { const d = JSON.parse(ev.target.result); layout=d.layout||{}; headers=d.headers||{}; inventory=d.inventory||{}; vert=d.vert||{}; batchDB=d.batchDB||[]; defaultAllocName=d.defaultAlloc||"PRODUKSI"; documents=d.documents||{}; lastDocNum=d.lastDocNum||0; settings=d.settings||{div_1002:350, div_1003:350}; calculateAll(); document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-exclamation-triangle text-warning me-1"></i> Belum Disimpan'; alert("File berhasil dibaca! Klik 'SIMPAN CLOUD' agar data tersimpan di Supabase."); }; r.readAsText(e.target.files[0]); }
 
-function importData(e) { 
-    const r = new FileReader(); 
-    r.onload = (ev) => { 
-        const d = JSON.parse(ev.target.result); 
-        layout=d.layout||{}; headers=d.headers||{}; inventory=d.inventory||{}; vert=d.vert||{}; batchDB=d.batchDB||[]; 
-        defaultAllocName=d.defaultAlloc||"PRODUKSI"; documents=d.documents||{}; lastDocNum=d.lastDocNum||0; settings=d.settings||{div_1002:350, div_1003:350}; 
-        
-        calculateAll();
-        document.getElementById('cloudStatus').innerHTML = '<i class="fas fa-exclamation-triangle text-warning me-1"></i> Belum Disimpan';
-        alert("File berhasil dibaca! Pastikan klik 'SIMPAN CLOUD' agar data tersimpan di Supabase.");
-    }; 
-    r.readAsText(e.target.files[0]); 
-}
-
-// ==========================================
-// 3. RENDER AGING STOCK / LAPORAN QA
-// ==========================================
-function renderLaporanStatus() {
-    let tExp = 0, tNear = 0, tInsp = 0, tBlock = 0, html = "", dataList = [];
-    if (!inventory || Object.keys(inventory).length === 0) { 
-        document.getElementById('bodyLaporanQA').innerHTML = '<tr><td colspan="7" class="py-5 text-muted text-center">Belum ada data stok. Silakan Restore atau Sync data.</td></tr>'; return; 
-    }
-    
-    Object.keys(inventory).forEach(sloc => {
-        inventory[sloc].forEach(it => {
-            let st = checkExpired(it.batch), qB = parseFloat(it.qBlock)||0, qI = parseFloat(it.qInsp)||0, qU = parseFloat(it.qty)||0, qT = qB+qI+qU;
-            if (qT <= 0) return;
-            let kritis = false;
-            if (st==='expired'){ tExp+=qT; kritis=true; } else if (st==='near_ed'){ tNear+=qT; kritis=true; }
-            if (qB > 0){ tBlock+=qB; kritis=true; } if (qI > 0){ tInsp+=qI; kritis=true; }
-            if (kritis) dataList.push({sloc, code: it.code, desc: it.desc, batch: it.batch, st, qB, qI, qU});
-        });
-    });
-
-    document.getElementById('summaryQA').innerHTML = `
-        <div class="col-md-3 col-6"><div class="stat-box shadow-sm border border-danger clickable-widget" onclick="showQADetail('expired')"><div class="stat-lbl text-danger">Expired</div><div class="stat-val text-danger">${formatNum(tExp)}</div></div></div>
-        <div class="col-md-3 col-6"><div class="stat-box shadow-sm border border-warning clickable-widget" onclick="showQADetail('near_ed')"><div class="stat-lbl text-warning text-dark">Near ED</div><div class="stat-val text-warning text-dark">${formatNum(tNear)}</div></div></div>
-        <div class="col-md-3 col-6"><div class="stat-box shadow-sm border border-info clickable-widget" onclick="showQADetail('insp')"><div class="stat-lbl text-info">QC Insp</div><div class="stat-val text-info">${formatNum(tInsp)}</div></div></div>
-        <div class="col-md-3 col-6"><div class="stat-box shadow-sm border border-dark clickable-widget" onclick="showQADetail('blok')"><div class="stat-lbl text-dark">Blok/Hold</div><div class="stat-val text-dark">${formatNum(tBlock)}</div></div></div>`;
-        
-    if(dataList.length === 0) { 
-        html = `<tr><td colspan="7" class="text-center py-5 text-success fw-bold">Gudang Aman. Tidak ada material kritis.</td></tr>`; 
-    } else { 
-        dataList.forEach(d => {
-            let badge = (d.st==='expired') ? '<span class="badge bg-danger">EXPIRED</span>' : (d.st==='near_ed' ? '<span class="badge bg-warning text-dark">NEAR ED</span>' : '<span class="badge bg-success">OK</span>');
-            html += `<tr><td class="fw-bold text-primary">${d.sloc}</td><td class="text-start"><b>${d.code}</b><br><small>${d.desc}</small></td><td class="fw-bold">${d.batch}</td><td>${badge}</td><td class="fw-bold text-danger">${d.qB>0?formatNum(d.qB):'-'}</td><td class="fw-bold text-warning text-dark">${d.qI>0?formatNum(d.qI):'-'}</td><td class="fw-bold text-success">${d.qU>0?formatNum(d.qU):'-'}</td></tr>`;
-        }); 
-    }
-    document.getElementById('bodyLaporanQA').innerHTML = html;
-}
-
-// ==========================================
-// 4. OPERASIONAL & MAPS LAINNYA
-// ==========================================
+// 3. EVENT LISTENER & UTILITY
 function formatNum(num) { let val = parseFloat(num); return isNaN(val) ? "0" : val.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
 function debounce(func, wait) { let t; return function(...args) { clearTimeout(t); t = setTimeout(() => func.apply(this, args), wait); }; }
-const debouncedSearchMap = debounce(searchMap, 300); const debouncedRenderPickList = debounce(renderPickList, 300); const debouncedCalculateAnalisa = debounce(calculateAnalisa, 300); const debouncedRenderDocList = debounce(renderDocList, 300);
 function generateDocNum() { lastDocNum++; return lastDocNum.toString().padStart(6, '0'); }
 
+// --- BAGIAN YANG KEMARIN HILANG (Search, Process SAP, Picking) ---
+function searchMap() { 
+    const q = document.getElementById('matSearch').value.toUpperCase(); document.querySelectorAll('.bin-box.has-data').forEach(b => { b.classList.remove('highlight-find'); b.style.opacity = "1"; }); if(!q) return; 
+    document.querySelectorAll('.bin-box.has-data').forEach(b => {
+        let addr = b.dataset.addr; if(!addr) return; let match = false; if(addr.toUpperCase().includes(q)) match = true;
+        let items = inventory[addr] || []; items.forEach(it => { if(String(it.code + " " + it.desc + " " + it.batch).toUpperCase().includes(q)) match = true; });
+        let stats = slocStatsData[addr]; if(stats) { if(q === 'EXPIRED' && stats.st === 'expired') match = true; if(q === 'NEAR' && stats.st === 'near_ed') match = true; if(q === 'BLOK' && stats.hB) match = true; }
+        if(match) { b.classList.add('highlight-find'); b.style.opacity = "1"; } else { b.style.opacity = "0.2"; }
+    });
+}
+function processSAP() {
+    const raw = document.getElementById('excelInput').value.trim(); if(!raw) return; const lines = raw.split("\n"); const h = lines[0].toLowerCase().split("\t").map(x => x.trim());
+    let mI = h.findIndex(x => x.includes('material') && !x.includes('desc')); let dI = h.findIndex(x => x.includes('desc')); let sI = h.findIndex(x => x.includes('location') || x.includes('sloc') || x.includes('bin')); let bI = h.indexOf('batch'); let uI = h.findIndex(x => x.includes('unrestricted') || x.includes('qty')); let iI = h.findIndex(x => x.includes('insp')); let blI = h.findIndex(x => x.includes('block')); let startIndex = 1; if(mI === -1 && uI === -1) { startIndex = 0; mI=0; dI=1; sI=2; bI=3; uI=4; iI=5; blI=6; } else { if(mI===-1) mI=0; if(dI===-1) dI=1; if(sI===-1) sI=2; if(bI===-1) bI=3; if(uI===-1) uI=4; if(iI===-1) iI=5; if(blI===-1) blI=6; }
+    let newInv = {}; let rowCount = 0;
+    for (let i = startIndex; i < lines.length; i++) {
+        if(!lines[i].trim()) continue; const c = lines[i].split("\t"); if(!c[mI] || c[mI].trim() === '') continue; const sloc = c[sI] ? String(c[sI]).trim().toUpperCase() : 'UNASSIGNED'; const parseNum = (v) => { if(!v) return 0; let clean = String(v).trim().replace(/[^\d,\.-]/g, ''); if(clean.includes(',') && clean.includes('.')) { if(clean.lastIndexOf(',') > clean.lastIndexOf('.')) clean = clean.replace(/\./g, '').replace(',', '.'); else clean = clean.replace(/,/g, ''); } else if(clean.includes(',')) clean = clean.replace(',', '.'); return parseFloat(clean) || 0; };
+        if(!newInv[sloc]) newInv[sloc] = []; newInv[sloc].push({ code: String(c[mI]).trim().toUpperCase(), desc: c[dI] ? c[dI].trim() : '-', batch: c[bI] ? String(c[bI]).trim().toUpperCase() : '-', qty: parseNum(c[uI]), qInsp: parseNum(c[iI]), qBlock: parseNum(c[blI]), is_manual: false }); rowCount++;
+    }
+    if(rowCount > 0) { inventory = newInv; calculateAll(); alert(`✅ Berhasil memproses ${rowCount} baris data.\nIndikator Edit Manual dibersihkan.`); document.getElementById('excelInput').value = ''; } else alert("❌ Gagal memproses! Format tidak dikenali.");
+}
+function renderPickList() {
+    const matQ = document.getElementById('pickSearch').value.toUpperCase(); const targetQty = parseFloat(document.getElementById('targetInputQty').value) || 0; const allocQ = document.getElementById('allocFilter').value.toUpperCase(); const body = document.getElementById('pickBody');
+    if(!matQ && !allocQ) { body.innerHTML = ""; recommendedSlocs = []; updateMapData(); return; }
+    let list = []; Object.keys(inventory).forEach(s => inventory[s].forEach(it => { let alloc = getBatchAllocation(it.batch); let mStr = String(it.code + " " + it.desc).toUpperCase(); let unrestrictedQty = parseFloat(it.qty) || 0; if (unrestrictedQty > 0) { if((!matQ || mStr.includes(matQ)) && (!allocQ || alloc.toUpperCase().includes(allocQ))) { list.push({ ref: it, s, exp: parseDate(it.batch), alloc, qty: unrestrictedQty, batch: it.batch, code: it.code, desc: it.desc }); } } }));
+    list.sort((a,b) => a.exp - b.exp); let runningTotal = 0; recommendedSlocs = []; let html = `<table id="pickingTableExcel" class="table table-bordered"><thead><tr class="table-success"><th>ED Date</th><th>Batch</th><th>SLOC</th><th>Qty Fisik</th><th>Akumulasi</th><th>Kode</th><th>Deskripsi</th><th>Alokasi</th><th>Ambil</th></tr></thead><tbody>`;
+    list.forEach((p) => {
+        let isExp = p.exp < TODAY; let qtyToTake = 0;
+        if (targetQty > 0) { if (runningTotal < targetQty && !isExp) { let needed = targetQty - runningTotal; qtyToTake = (p.qty >= needed) ? needed : p.qty; runningTotal += qtyToTake; recommendedSlocs.push(p.s); } else { return; } } else { if (!isExp) { runningTotal += p.qty; recommendedSlocs.push(p.s); qtyToTake = p.qty; } }
+        let cRow = isExp ? "text-expired" : "row-pick"; let labelAmbil = (targetQty > 0 || !isExp) ? `<button class="btn btn-sm btn-success w-100 fw-bold" onclick="performLivePick(this, '${p.s}', '${p.code}', '${p.batch}', '${p.desc}', ${qtyToTake})">AMBIL ${formatNum(qtyToTake)}</button>` : '-'; if(isExp) { labelAmbil = '-'; }
+        html += `<tr class="${cRow}"><td>${p.exp.toLocaleDateString('id-ID')}</td><td class="fw-bold">${p.batch}</td><td class="fw-bold text-primary">${p.s}</td><td class="fw-bold">${formatNum(p.qty)}</td><td>${formatNum(runningTotal)}</td><td class="fw-bold">${p.code}</td><td>${p.desc}</td><td>${p.alloc}</td><td class="text-center align-middle">${labelAmbil}</td></tr>`;
+    }); body.innerHTML = html + "</tbody></table>"; updateMapData();
+}
+
+const debouncedSearchMap = debounce(searchMap, 300);
+const debouncedRenderPickList = debounce(renderPickList, 300);
+const debouncedCalculateAnalisa = debounce(calculateAnalisa, 300);
+const debouncedRenderDocList = debounce(renderDocList, 300);
+// --------------------------------------------------------------
+
 function startSession() {
-    if(activeSessionDoc) return alert("Selesaikan sesi aktif dulu!"); activeSessionDoc = generateDocNum(); activeSessionDetails = [];
+    if(activeSessionDoc) return alert("Selesaikan sesi aktif dulu!");
+    activeSessionDoc = generateDocNum(); activeSessionDetails = [];
     document.getElementById('sessionPanel').classList.replace('d-none', 'session-panel-active'); document.getElementById('sessionDocNum').innerText = activeSessionDoc;
     updateSessionCount(); updateBtnSesiUI(true);
 }
+
 function endSession() {
     if(!activeSessionDoc) return;
     if(activeSessionDetails.length > 0) {
         let outC = activeSessionDetails.filter(d=>d.type==='OUT').length, inC = activeSessionDetails.filter(d=>d.type==='INB').length, type = "WMS TRANSACTION";
         if (outC > inC) type = "PICKING / OUT"; else if (inC > outC) type = "INBOUND MANUAL";
-        documents[activeSessionDoc] = { waktu: new Date().toLocaleString('id-ID'), tipe: type, detail: activeSessionDetails }; alert(`Sesi ${activeSessionDoc} Selesai! Menyimpan ke Cloud...`); syncServer(); 
+        documents[activeSessionDoc] = { waktu: new Date().toLocaleString('id-ID'), tipe: type, detail: activeSessionDetails };
+        alert(`Sesi ${activeSessionDoc} Selesai! Menyimpan ke Cloud...`); syncServer(); 
     } else { alert("Sesi dibatalkan (kosong)."); }
     activeSessionDoc = null; document.getElementById('sessionPanel').classList.replace('session-panel-active', 'd-none'); updateBtnSesiUI(false);
 }
@@ -460,12 +423,21 @@ function updateBtnSesiUI(active) {
     [bMap, bPick].forEach(b => { if(b) { b.disabled = active; b.innerHTML = active ? '<i class="fas fa-spinner"></i> SESI AKTIF' : '<i class="fas fa-play"></i> MULAI SESI'; if(active) b.classList.add('btn-sesi-aktif'); else b.classList.remove('btn-sesi-aktif'); } });
 }
 
-function openTab(e, name) {
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(name).classList.add("active"); if(e) e.currentTarget.classList.add("active");
-    if(name === 'tabLaporanQA') renderLaporanStatus(); if(name === 'tabTrace') renderDocList(true); if(name === 'tabAnalisa') calculateAnalisa();
+function renderLaporanStatus() {
+    let tExp = 0, tNear = 0, tInsp = 0, tBlock = 0, html = "", dataList = [];
+    if (!inventory || Object.keys(inventory).length === 0) { document.getElementById('bodyLaporanQA').innerHTML = '<tr><td colspan="7" class="py-5 text-muted text-center">Belum ada data stok. Silakan Restore atau Sync data.</td></tr>'; return; }
+    Object.keys(inventory).forEach(sloc => { inventory[sloc].forEach(it => {
+        let st = checkExpired(it.batch), qB = parseFloat(it.qBlock)||0, qI = parseFloat(it.qInsp)||0, qU = parseFloat(it.qty)||0, qT = qB+qI+qU; if (qT <= 0) return; let kritis = false;
+        if (st==='expired'){ tExp+=qT; kritis=true; } else if (st==='near_ed'){ tNear+=qT; kritis=true; }
+        if (qB > 0){ tBlock+=qB; kritis=true; } if (qI > 0){ tInsp+=qI; kritis=true; }
+        if (kritis) dataList.push({sloc, code: it.code, desc: it.desc, batch: it.batch, st, qB, qI, qU});
+    }); });
+    document.getElementById('summaryQA').innerHTML = `<div class="col-md-3 col-6"><div class="stat-box shadow-sm border border-danger clickable-widget" onclick="showQADetail('expired')"><div class="stat-lbl text-danger">Expired</div><div class="stat-val text-danger">${formatNum(tExp)}</div></div></div><div class="col-md-3 col-6"><div class="stat-box shadow-sm border border-warning clickable-widget" onclick="showQADetail('near_ed')"><div class="stat-lbl text-warning text-dark">Near ED</div><div class="stat-val text-warning text-dark">${formatNum(tNear)}</div></div></div><div class="col-md-3 col-6"><div class="stat-box shadow-sm border border-info clickable-widget" onclick="showQADetail('insp')"><div class="stat-lbl text-info">QC Insp</div><div class="stat-val text-info">${formatNum(tInsp)}</div></div></div><div class="col-md-3 col-6"><div class="stat-box shadow-sm border border-dark clickable-widget" onclick="showQADetail('blok')"><div class="stat-lbl text-dark">Blok/Hold</div><div class="stat-val text-dark">${formatNum(tBlock)}</div></div></div>`;
+    if(dataList.length === 0) { html = `<tr><td colspan="7" class="text-center py-5 text-success fw-bold">Gudang Aman. Tidak ada material kritis.</td></tr>`; } 
+    else { dataList.forEach(d => { let badge = (d.st==='expired') ? '<span class="badge bg-danger">EXPIRED</span>' : (d.st==='near_ed' ? '<span class="badge bg-warning text-dark">NEAR ED</span>' : '<span class="badge bg-success">OK</span>'); html += `<tr><td class="fw-bold text-primary">${d.sloc}</td><td class="text-start"><b>${d.code}</b><br><small>${d.desc}</small></td><td class="fw-bold">${d.batch}</td><td>${badge}</td><td class="fw-bold text-danger">${d.qB>0?formatNum(d.qB):'-'}</td><td class="fw-bold text-warning text-dark">${d.qI>0?formatNum(d.qI):'-'}</td><td class="fw-bold text-success">${d.qU>0?formatNum(d.qU):'-'}</td></tr>`; }); } document.getElementById('bodyLaporanQA').innerHTML = html;
 }
 
+function openTab(e, name) { document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(name).classList.add("active"); if(e) e.currentTarget.classList.add("active"); if(name === 'tabLaporanQA') renderLaporanStatus(); if(name === 'tabTrace') renderDocList(true); if(name === 'tabAnalisa') calculateAnalisa(); }
 function parseDate(b) { if(!b || b.length < 6) return new Date(2099,0,1); let d = parseInt(b.substring(0,2)), m = parseInt(b.substring(2,4))-1, y = parseInt("20"+b.substring(4,6)), dt = new Date(y,m,d); return isNaN(dt.getTime()) ? new Date(2099,0,1) : dt; }
 function checkExpired(batch) { let diff = (parseDate(batch) - TODAY) / 86400000; if(diff < 0) return 'expired'; if(diff <= 90) return 'near_ed'; return 'normal'; }
 function getBatchAllocation(batch) { if(!batch || batch==="-") return defaultAllocName; for(let db of batchDB) { if(db.c && batch.toUpperCase().includes(db.c)) return db.t; } return defaultAllocName; }
@@ -478,12 +450,10 @@ function renderBinModal() {
     const head = document.getElementById('binModalHead'), body = document.getElementById('binModalBody'), actions = document.getElementById('binModalActions'), closeBtn = document.getElementById('binModalCloseBtn'), toggleBtn = document.getElementById('btnToggleBinEdit');
     document.getElementById('binModalTitle').innerHTML = `📍 Rak: <span class="text-primary">${currentEditSloc}</span>`; body.innerHTML = '';
     if (isBinEditMode) {
-        toggleBtn.innerHTML = 'BATAL'; toggleBtn.style.background = 'var(--red)'; actions.style.display = 'flex'; closeBtn.style.display = 'none';
-        head.innerHTML = `<tr><th>Kode</th><th>Nama</th><th>Batch</th><th>KG</th><th></th></tr>`;
+        toggleBtn.innerHTML = 'BATAL'; toggleBtn.style.background = 'var(--red)'; actions.style.display = 'flex'; closeBtn.style.display = 'none'; head.innerHTML = `<tr><th>Kode</th><th>Nama</th><th>Batch</th><th>KG</th><th></th></tr>`;
         currentBinItems.forEach((it) => { let q = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); body.innerHTML += `<tr><td><input class="form-control i-code" value="${it.code||''}" oninput="autoFillMaterial(this)"></td><td><input class="form-control i-desc" value="${it.desc||''}"></td><td><input class="form-control i-batch" value="${it.batch||''}"></td><td><input type="number" class="form-control i-qty" value="${q}"></td><td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()"><i class="fas fa-trash"></i></button></td></tr>`; });
     } else {
-        toggleBtn.innerHTML = 'MODE MANUAL'; toggleBtn.style.background = 'var(--orange)'; actions.style.display = 'none'; closeBtn.style.display = 'block';
-        head.innerHTML = `<tr><th>Material</th><th>Batch</th><th>Qty (KG)</th><th>Aksi</th></tr>`;
+        toggleBtn.innerHTML = 'MODE MANUAL'; toggleBtn.style.background = 'var(--orange)'; actions.style.display = 'none'; closeBtn.style.display = 'block'; head.innerHTML = `<tr><th>Material</th><th>Batch</th><th>Qty (KG)</th><th>Aksi</th></tr>`;
         if (currentBinItems.length === 0) body.innerHTML = `<tr><td colspan="4" class="text-center py-4">Rak Kosong.</td></tr>`;
         else { currentBinItems.forEach(it => { let qT = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); body.innerHTML += `<tr><td><b>${it.code}</b><br><small>${it.desc}</small></td><td>${it.batch}</td><td class="fw-bold">${formatNum(qT)}</td><td><button class="btn btn-sm btn-outline-warning" onclick="transferBin('${currentEditSloc}','${it.code}','${it.batch}',${qT})">Pindah</button></td></tr>`; }); }
     }
@@ -496,11 +466,8 @@ function buildMapSkeleton() {
         for(let c=1; c<=24; c++) grid.appendChild(createBox(headers[`L${l}-C${c}`] || String.fromCharCode(64+c), 'bin-header', `L${l}-C${c}`, 'header'));
         for (let r = 1; r <= 10; r++) { grid.appendChild(createBox(vert[`L${l}-V${r}`] || r, 'vert-label', `L${l}-V${r}`, 'vert'));
             for (let c = 1; c <= 24; c++) { const bK = `L${l}-R${r}-C${c}`, addr = layout[bK] || '', box = document.createElement('div'); box.className = 'bin-box'; box.id = `BOX-${bK}`; box.dataset.addr = addr; 
-                if (editMode) { const i = document.createElement('input'); i.value = addr; i.onchange = (e) => layout[bK] = e.target.value.toUpperCase(); box.appendChild(i); } else { if(addr) box.classList.add('has-data'); else box.style.opacity = "0.2"; box.innerHTML = `<span class="bin-addr">${addr}</span><b class="bin-qty"></b>`; } grid.appendChild(box);
-            }
-        } sec.appendChild(grid); container.appendChild(sec);
-    }
-    if(!editMode) container.onclick = (e) => { const b = e.target.closest('.bin-box.has-data'); if(b) showDetail(b.dataset.addr); }; mapBuilt = true;
+                if (editMode) { const i = document.createElement('input'); i.value = addr; i.onchange = (e) => layout[bK] = e.target.value.toUpperCase(); box.appendChild(i); } else { if(addr) box.classList.add('has-data'); else box.style.opacity = "0.2"; box.innerHTML = `<span class="bin-addr">${addr}</span><b class="bin-qty"></b>`; } grid.appendChild(box); } } sec.appendChild(grid); container.appendChild(sec);
+    } if(!editMode) container.onclick = (e) => { const b = e.target.closest('.bin-box.has-data'); if(b) showDetail(b.dataset.addr); }; mapBuilt = true;
 }
 
 function updateMapData() {
@@ -522,8 +489,7 @@ function updateMapData() {
 function updateDash(stats, f, t, oP, oD) {
     let html = `<div class="summary-card total-card shadow-sm"><span>UTILISASI TOTAL</span><span class="summary-val">${t>0?Math.round(((f+oP)/t)*100):0}%</span><div class="d-flex justify-content-between mt-2 pt-2 border-top small"><span>Isi: ${f}</span><span>Open: ${oP} Plt</span><span>Ksg: ${Math.max(0,t-f)}</span></div></div>`;
     ['1002','1003'].forEach(k => { html += `<div class="summary-card shadow-sm clickable-widget" style="border-top-color:#3b82f6;" onclick="openDivisorModal('${k}')"><span>OPEN ${k}</span><span class="summary-val">${oD[k].plt} Plt</span><div class="text-center mt-2 border-top small">${formatNum(oD[k].kg)} KG</div></div>`; });
-    for(let i=1; i<=7; i++) { let p = stats[i].t>0?Math.round((stats[i].f/stats[i].t)*100):0; html += `<div class="summary-card shadow-sm"><span>Blok H${i}</span><span class="summary-val">${p}%</span><div class="d-flex justify-content-between mt-2 border-top small"><span>Isi: ${stats[i].f}</span><span>Ksg: ${stats[i].t-stats[i].f}</span></div></div>`; }
-    document.getElementById('dashSummary').innerHTML = html;
+    for(let i=1; i<=7; i++) { let p = stats[i].t>0?Math.round((stats[i].f/stats[i].t)*100):0; html += `<div class="summary-card shadow-sm"><span>Blok H${i}</span><span class="summary-val">${p}%</span><div class="d-flex justify-content-between mt-2 border-top small"><span>Isi: ${stats[i].f}</span><span>Ksg: ${stats[i].t-stats[i].f}</span></div></div>`; } document.getElementById('dashSummary').innerHTML = html;
 }
 
 function buildMaterialMaster() { let s = new Set(); const dl = document.getElementById('listMaterialMaster'); dl.innerHTML = ''; Object.values(inventory).flat().forEach(it => { if(it.code && !s.has(it.code)) { s.add(it.code); let o = document.createElement('option'); o.value = it.code; o.innerText = it.desc; dl.appendChild(o); } }); }
@@ -534,7 +500,75 @@ function toggleFullScreen() { const w = document.getElementById('mapWrapper'); w
 function calculateAll() { buildMaterialMaster(); updateMapData(); renderLaporanStatus(); }
 function filterLegend(type) { if(type==='clear') { updateMapData(); return; } document.querySelectorAll('.bin-box.has-data').forEach(b => { let a = b.dataset.addr, s = slocStatsData[a], match = false; if(s) { if(type==='expired'&&s.st==='expired') match=true; if(type==='near_ed'&&s.st==='near_ed') match=true; if(type==='blok'&&s.hB) match=true; if(type==='full'&&s.total>700) match=true; if(type==='campuran'&&s.dist>1) match=true; if(type==='normal'&&s.total>=400&&s.total<=700) match=true; } b.style.opacity = match ? "1" : "0.2"; if(match) b.classList.add('highlight-find'); else b.classList.remove('highlight-find'); }); }
 
-// Eksekusi ketika halaman dimuat
+let currentDocPage = 1; const docsPerPage = 15;
+function renderDocList(resetPage = false) {
+    if(resetPage) currentDocPage = 1; const search = document.getElementById('docSearch').value.toUpperCase(); const startD = document.getElementById('docStartDate').value; const endD = document.getElementById('docEndDate').value; const container = document.getElementById('docListContainer'); const pagination = document.getElementById('docPagination'); container.innerHTML = ""; pagination.innerHTML = ""; let docKeys = Object.keys(documents).sort((a,b) => parseInt(b) - parseInt(a));
+    let filteredDocs = docKeys.filter(docId => { let doc = documents[docId]; let matchSearch = !search || docId.toUpperCase().includes(search) || doc.tipe.toUpperCase().includes(search); let docDate = parseIdDate(doc.waktu); docDate.setHours(0,0,0,0); let matchStart = true, matchEnd = true; if(startD) { let sD = new Date(startD); sD.setHours(0,0,0,0); matchStart = docDate >= sD; } if(endD) { let eD = new Date(endD); eD.setHours(0,0,0,0); matchEnd = docDate <= eD; } return matchSearch && matchStart && matchEnd; });
+    let totalPages = Math.ceil(filteredDocs.length / docsPerPage) || 1; if(currentDocPage > totalPages) currentDocPage = totalPages; let pagedDocs = filteredDocs.slice((currentDocPage - 1) * docsPerPage, currentDocPage * docsPerPage);
+    pagedDocs.forEach(docId => {
+        let doc = documents[docId]; let icon = "fa-file-alt"; let color = "text-secondary"; if(doc.tipe.includes("TRANSFER")) { icon = "fa-exchange-alt"; color = "text-warning"; } else if(doc.tipe.includes("OUT") || doc.tipe.includes("PICKING")) { icon = "fa-arrow-up"; color = "text-danger"; } else if(doc.tipe.includes("IN")) { icon = "fa-arrow-down"; color = "text-success"; } else { icon = "fa-boxes"; color = "text-primary"; }
+        let item = document.createElement('div'); item.className = 'doc-item shadow-sm'; item.innerHTML = `<div class="d-flex justify-content-between align-items-center mb-1"><b class="text-dark">DOC-${docId}</b><span class="badge bg-light border ${color}"><i class="fas ${icon}"></i> ${doc.tipe}</span></div><div class="small text-muted"><i class="far fa-clock"></i> ${doc.waktu}</div>`; item.onclick = function() { document.querySelectorAll('.doc-item').forEach(el => el.classList.remove('active')); item.classList.add('active'); renderDocDetail(docId); }; container.appendChild(item);
+    });
+    if (filteredDocs.length === 0) { container.innerHTML = "<div class='text-center text-muted small py-3'>Tidak ada dokumen ditemukan.</div>"; } else if (totalPages > 1) { pagination.innerHTML = `<button class="btn btn-sm btn-outline-secondary ${currentDocPage === 1 ? 'disabled' : ''}" onclick="if(currentDocPage>1){currentDocPage--; renderDocList();}"><i class="fas fa-chevron-left"></i> Prev</button><span class="small text-muted fw-bold">Hal ${currentDocPage} dari ${totalPages}</span><button class="btn btn-sm btn-outline-secondary ${currentDocPage === totalPages ? 'disabled' : ''}" onclick="if(currentDocPage<${totalPages}){currentDocPage++; renderDocList();}"><i class="fas fa-chevron-right"></i> Next</button>`; }
+}
+function parseIdDate(dateStr) { let parts = dateStr.split(', ')[0].split('/'); if(parts.length === 3) return new Date(parts[2], parts[1]-1, parts[0]); return new Date(); }
+function renderDocDetail(docId) {
+    let doc = documents[docId]; if(!doc) return; document.getElementById('docDetailTitle').innerHTML = `<i class="fas fa-file-signature text-primary me-2"></i> Rincian Dokumen: <span class="text-dark">DOC-${docId}</span>`; document.getElementById('docActionArea').innerHTML = `<button class="btn btn-sm btn-success shadow-sm fw-bold me-1" onclick="exportSingleDoc('${docId}')"><i class="fas fa-file-excel"></i> Export</button><button class="btn btn-sm btn-danger shadow-sm fw-bold" onclick="deleteDocument('${docId}')"><i class="fas fa-trash-alt"></i> Hapus</button>`;
+    let html = `<div class="d-flex justify-content-between mb-3 border-bottom pb-2"><div><small class="text-muted d-block">Tipe Transaksi</small><b class="text-dark">${doc.tipe}</b></div><div class="text-end"><small class="text-muted d-block">Waktu Eksekusi</small><b class="text-dark">${doc.waktu}</b></div></div><table class="table table-sm table-bordered bg-white text-center align-middle"><thead class="table-light text-muted" style="font-size:11px;"><tr><th>Tipe</th><th>Kode</th><th>Deskripsi</th><th>Batch</th><th>Qty (KG)</th><th>Asal</th><th>Tujuan</th></tr></thead><tbody style="font-size:12px;">`;
+    doc.detail.forEach(d => { let badgeType = d.type === 'INB' ? 'bg-success' : (d.type === 'OUT' ? 'bg-danger' : 'bg-warning text-dark'); html += `<tr><td><span class="badge ${badgeType}">${d.type || '-'}</span></td><td class="fw-bold">${d.mat}</td><td>${d.desc}</td><td>${d.batch}</td><td class="fw-bold text-primary">${formatNum(d.qty)}</td><td><span class="badge bg-secondary">${d.source}</span></td><td><span class="badge bg-primary">${d.target}</span></td></tr>`; }); document.getElementById('docDetailBody').innerHTML = html + `</tbody></table>`;
+}
+async function deleteDocument(docId) { if(!confirm("Hapus dokumen " + docId + "?")) return; delete documents[docId]; syncServer(); renderDocList(true); }
+
+function calculateAnalisa() { updateBatchAnalysis(); renderTop10(); }
+function updateBatchAnalysis() {
+    let q = (document.getElementById('analisaSearch')?.value || "").toUpperCase(); let resum = {}; resum[defaultAllocName] = { q: 0, s: new Set(), items: {} }; batchDB.forEach(db => { if(db.c) resum[db.t] = { q: 0, s: new Set(), items: {} }; });
+    let grandTotal = 0; Object.keys(inventory).forEach(sloc => { inventory[sloc].forEach(it => { if (q && !String(it.code+" "+it.desc).toUpperCase().includes(q)) return; let target = getBatchAllocation(it.batch); if(!resum[target]) resum[target] = { q: 0, s: new Set(), items: {} }; let w = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); grandTotal += w; resum[target].q += w; resum[target].s.add(sloc); if(!resum[target].items[it.code]) resum[target].items[it.code] = { desc: it.desc, qty: 0 }; resum[target].items[it.code].qty += w; }); });
+    const badge = document.getElementById('grandTotalBadge'); if(badge) badge.innerText = formatNum(grandTotal);
+    let html = "<table class='table table-bordered text-center'><thead><tr class='table-info'><th>Alokasi</th><th>Total Stok</th><th>Rak</th><th>Kode Material</th><th>Deskripsi Material</th><th>Total KG</th></tr></thead><tbody>"; Object.entries(resum).forEach(([target, data]) => { if(data.q <= 0) return; let itemEntries = Object.entries(data.items).sort((a,b) => b[1].qty - a[1].qty); itemEntries.forEach((item, index) => { html += `<tr>`; if (index === 0) html += `<td rowspan="${itemEntries.length}" class="fw-bold text-primary align-top" style="font-size:14px;">${target}</td><td rowspan="${itemEntries.length}" class="fw-bold align-top" style="font-size:14px;">${formatNum(data.q)}</td><td rowspan="${itemEntries.length}" class="align-top">${data.s.size} Titik</td>`; html += `<td class="fw-bold">${item[0]}</td><td class="text-muted text-start">${item[1].desc}</td><td class="fw-bold text-end text-primary" style="font-size:14px;">${formatNum(item[1].qty)}</td></tr>`; }); }); document.getElementById('batchResumBody').innerHTML = html + "</tbody></table>";
+}
+function renderTop10() { let q = (document.getElementById('analisaSearch')?.value || "").toUpperCase(); let m = {}; Object.values(inventory).flat().forEach(it => { if (q && !String(it.code+" "+it.desc).toUpperCase().includes(q)) return; if(!m[it.code]) m[it.code] = {n: it.desc, q:0}; m[it.code].q += (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); }); let s = Object.entries(m).sort((a,b) => b[1].q - a[1].q).slice(0,10); document.getElementById('top10Body').innerHTML = "<table class='table table-sm'><thead><tr><th>Material</th><th>Qty Total</th></tr></thead><tbody>" + s.map(x => `<tr><td><b style="font-size:13px;">${x[0]}</b><br><span class="text-muted">${x[1].n}</span></td><td class="fw-bold text-primary" style="font-size:14px;">${formatNum(x[1].q)} KG</td></tr>`).join('') + "</tbody></table>"; }
+function renderBatchDB() { document.getElementById('batchDBBody').innerHTML = "<table class='table table-sm text-center'><thead><tr><th>Batch SAP</th><th>Alokasi</th><th>Aksi</th></tr></thead><tbody>" + batchDB.map((it, i) => `<tr><td><input class="form-control form-control-sm text-center" value="${it.c}" onchange="batchDB[${i}].c=this.value.toUpperCase()"></td><td><input class="form-control form-control-sm text-center" value="${it.t}" onchange="batchDB[${i}].t=this.value.toUpperCase()"></td><td><button class="btn btn-sm btn-danger" onclick="batchDB.splice(${i},1);renderBatchDB()"><i class="fas fa-trash"></i></button></td></tr>`).join('') + "</tbody></table>"; }
+function addBatchRow() { batchDB.push({c:'', t:''}); renderBatchDB(); }
+
+function exportPickingToExcel() { const t = document.getElementById('pickingTableExcel'); if(!t) return alert("Data Kosong!"); let cloneTable = t.cloneNode(true); let rows = cloneTable.rows; for(let i=0; i<rows.length; i++) { if(rows[i].cells.length > 4) rows[i].deleteCell(4); } let wb = XLSX.utils.table_to_book(cloneTable, {sheet:"Picking List"}); XLSX.writeFile(wb, `Picking_List_${new Date().toISOString().slice(0,10)}.xlsx`); }
+function exportAnalisaToExcel() { const t = document.getElementById('analisaTableExcel'); if(!t) return alert("Data Kosong!"); let wb = XLSX.utils.table_to_book(t, {sheet:"Analisa Alokasi"}); XLSX.writeFile(wb, `Analisa_Stok_${new Date().toISOString().slice(0,10)}.xlsx`); }
+function exportInventoryToExcel() { let data = [["Lokasi / Rak", "Kode Material", "Deskripsi Material", "Batch", "Total Qty (KG)", "Alokasi Dept"]]; Object.keys(inventory).forEach(s => { inventory[s].forEach(i => { let totalQty = (parseFloat(i.qty)||0)+(parseFloat(i.qInsp)||0)+(parseFloat(i.qBlock)||0); data.push([s, i.code, i.desc, i.batch, totalQty, getBatchAllocation(i.batch)]); }); }); if (data.length === 1) return alert("Stok Kosong!"); let ws = XLSX.utils.aoa_to_sheet(data); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Stok Fisik"); XLSX.writeFile(wb, `Data_Stok_Fisik_${new Date().toISOString().slice(0,10)}.xlsx`); }
+function exportLaporanQA() { const t = document.getElementById('tableQAExcel'); if(!t || t.innerText.includes('Gudang aman')) return alert("Data Kosong!"); let wb = XLSX.utils.table_to_book(t, {sheet:"Laporan QA"}); XLSX.writeFile(wb, `Laporan_Karantina_ED_${new Date().toISOString().slice(0,10)}.xlsx`); }
+function exportSingleDoc(docId) { let doc = documents[docId]; if(!doc) return; let data = [["No Dokumen", "Waktu Transaksi", "Tipe Transaksi", "Aksi", "Kode Material", "Deskripsi", "Batch", "Qty (KG)", "Lokasi Asal", "Lokasi Tujuan"]]; doc.detail.forEach(d => { data.push(["DOC-" + docId, doc.waktu, doc.tipe, d.type || "-", d.mat, d.desc, d.batch, d.qty, d.source || "-", d.target || "-"]); }); let ws = XLSX.utils.aoa_to_sheet(data); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Detail Dokumen"); XLSX.writeFile(wb, "Rincian_Dokumen_" + docId + ".xlsx"); }
+
+function searchMultiBin() {
+    const input = document.getElementById('multiBinInput').value.toUpperCase(); if(!input.trim()) return; const targets = input.split(/[\s,]+/).filter(x => x); let html = `<table class="table table-bordered text-center"><thead class="bg-light"><tr><th>Alamat Rak (SLOC)</th><th>Status</th><th>Total Qty (KG)</th><th>Rincian Material</th></tr></thead><tbody>`;
+    targets.forEach(t => { let items = inventory[t]; if(!items || items.length === 0) { html += `<tr><td class="fw-bold">${t}</td><td><span class="badge bg-secondary">KOSONG</span></td><td>-</td><td class="text-muted">Tidak ada stok</td></tr>`; } else { let total = 0; let detailHtml = ""; items.forEach(it => { let q = (parseFloat(it.qty)||0) + (parseFloat(it.qInsp)||0) + (parseFloat(it.qBlock)||0); total += q; detailHtml += `<div class="mb-1 border-bottom pb-1"><b>${it.code}</b> (${it.batch}): <span class="text-primary">${formatNum(q)} KG</span></div>`; }); html += `<tr><td class="fw-bold">${t}</td><td><span class="badge bg-success">TERISI</span></td><td class="fw-bold fs-5">${formatNum(total)}</td><td class="text-start" style="font-size:11px;">${detailHtml}</td></tr>`; } });
+    document.getElementById('multiBinResult').innerHTML = html + "</tbody></table>";
+}
+
+function openDivisorModal(key) { document.getElementById('divSlocKey').value = key; document.getElementById('divSlocLabel').value = 'OPEN ' + key; document.getElementById('divValueInput').value = settings[`div_${key}`] || 350; document.getElementById('divisorModal').style.display = 'block'; }
+function closeDivisorModal() { document.getElementById('divisorModal').style.display = 'none'; }
+function saveDivisor() { let key = document.getElementById('divSlocKey').value; let val = parseFloat(document.getElementById('divValueInput').value); if (!val || val <= 0) return alert("Nilai harus lebih besar dari 0!"); settings[`div_${key}`] = val; closeDivisorModal(); updateMapData(); syncServer(); }
+function showQADetail(cat) { let title = ""; let html = ""; if(cat === 'expired') title = "<i class='fas fa-exclamation-triangle text-danger me-2'></i> Detail Stok Expired"; if(cat === 'near_ed') title = "<i class='fas fa-clock text-warning text-dark me-2'></i> Detail Stok Near ED"; if(cat === 'insp') title = "<i class='fas fa-search text-info me-2'></i> Detail Quality Inspection"; if(cat === 'blok') title = "<i class='fas fa-ban text-dark me-2'></i> Detail Blok / Hold"; document.getElementById('qaModalTitle').innerHTML = title; Object.keys(inventory).forEach(sloc => { inventory[sloc].forEach(it => { let st = checkExpired(it.batch); let qBlock = parseFloat(it.qBlock) || 0; let qInsp = parseFloat(it.qInsp) || 0; let qUnre = parseFloat(it.qty) || 0; let qTot = qBlock + qInsp + qUnre; if(qTot <= 0) return; let show = false; let qtyToShow = 0; if(cat === 'expired' && st === 'expired') { show = true; qtyToShow = qTot; } if(cat === 'near_ed' && st === 'near_ed') { show = true; qtyToShow = qTot; } if(cat === 'insp' && qInsp > 0) { show = true; qtyToShow = qInsp; } if(cat === 'blok' && qBlock > 0) { show = true; qtyToShow = qBlock; } if(show) { html += `<tr><td class="fw-bold text-primary align-middle">${sloc}</td><td class="text-start"><b>${it.code}</b><br><small class="text-muted">${it.desc}</small></td><td class="align-middle">${it.batch}</td><td class="fw-bold text-dark fs-6 align-middle">${formatNum(qtyToShow)}</td></tr>`; } }); }); if(!html) html = `<tr><td colspan="4" class="text-center py-5 text-muted"><i class="fas fa-box-open fs-3 opacity-50 mb-3 d-block"></i>Tidak ada material pada kategori ini.</td></tr>`; document.getElementById('qaModalBody').innerHTML = html; document.getElementById('qaModal').style.display = 'block'; }
+function autoFillMaterial(input) { let code = input.value.toUpperCase(); let descInput = input.closest('tr').querySelector('.i-desc'); let found = null; Object.values(inventory).flat().forEach(it => { if(it.code === code) found = it.desc; }); if(found) { descInput.value = found; descInput.classList.add('flash-green'); setTimeout(() => descInput.classList.remove('flash-green'), 1000); } }
+
+function getRowsData() { let rows = document.querySelectorAll('#binModalBody tr'), temp = []; rows.forEach(r => { if(r.querySelector('.i-code')) { temp.push({ code: r.querySelector('.i-code').value.trim(), desc: r.querySelector('.i-desc').value.trim(), batch: r.querySelector('.i-batch').value.trim().toUpperCase(), qty: parseFloat(r.querySelector('.i-qty').value) || 0, qInsp: 0, qBlock: 0, is_manual: true }); } }); return temp; }
+function addBinRow() { currentBinItems = getRowsData(); currentBinItems.push({code:'', desc:'', batch:'', qty:0, qInsp:0, qBlock:0, is_manual:true}); renderBinModal(); }
+function saveBinData() { if(!activeSessionDoc) { alert("⚠️ DITOLAK!\nKlik tombol MULAI SESI di menu atas terlebih dahulu."); return; } let newItems = getRowsData().filter(it => it.code !== ""); if (newItems.length > 0) { newItems.forEach(it => { activeSessionDetails.push({mat: it.code, desc: it.desc, batch: it.batch, qty: it.qty, source: "LUAR / ADJ", target: currentEditSloc, type: "INB"}); }); updateSessionCount(); inventory[currentEditSloc] = newItems; } else { delete inventory[currentEditSloc]; } updateMapData(); calculateAll(); closeBinModal(); }
+
+function transferBin(sloc, code, batch, maxQty) {
+    if(!activeSessionDoc) { alert("⚠️ DITOLAK!\nKlik tombol MULAI SESI terlebih dahulu."); return; }
+    let targetBin = prompt(`PINDAH MATERIAL: ${code}\nDari Rak: ${sloc}\n\nMasukkan ALAMAT RAK TUJUAN (Contoh: L1-R1-C1):`); if(!targetBin) return; targetBin = targetBin.trim().toUpperCase();
+    let moveQty = prompt(`Berapa KG yang dipindah ke rak ${targetBin}?\n(Stok Tersedia: ${formatNum(maxQty)} KG)`, maxQty); if(!moveQty || isNaN(moveQty) || moveQty <= 0 || moveQty > maxQty) return; moveQty = parseFloat(moveQty);
+    let sItems = inventory[sloc]; let sIdx = sItems.findIndex(i => i.code === code && i.batch === batch); let itemToMove = JSON.parse(JSON.stringify(sItems[sIdx])); sItems[sIdx].qty = parseFloat(sItems[sIdx].qty) - moveQty; if(sItems[sIdx].qty <= 0) sItems.splice(sIdx, 1); if(sItems.length === 0) delete inventory[sloc];
+    if(!inventory[targetBin]) inventory[targetBin] = []; let tItems = inventory[targetBin]; let tIdx = tItems.findIndex(i => i.code === code && i.batch === batch); if(tIdx > -1) { tItems[tIdx].qty = parseFloat(tItems[tIdx].qty) + moveQty; } else { itemToMove.qty = moveQty; tItems.push(itemToMove); }
+    activeSessionDetails.push({mat: code, desc: itemToMove.desc, batch: batch, qty: moveQty, source: sloc, target: targetBin, type: "TRF"}); updateSessionCount(); showDetail(sloc); updateMapData(); calculateAll(); 
+}
+
+function performLivePick(btn, sloc, code, batch, desc, maxQty) {
+    if(!activeSessionDoc) { alert("⚠️ DITOLAK!\nKlik tombol MULAI SESI PICKING terlebih dahulu."); return; }
+    let pickQty = prompt(`Berapa KG yang Anda ambil dari Rak ${sloc}?\nMaterial: ${code} (Batch: ${batch})\n\n(Maksimal: ${formatNum(maxQty)} KG)`, maxQty); if(!pickQty || isNaN(pickQty) || pickQty <= 0 || pickQty > maxQty) return; pickQty = parseFloat(pickQty);
+    let sItems = inventory[sloc]; let sIdx = sItems.findIndex(i => i.code === code && i.batch === batch);
+    if(sIdx > -1) { sItems[sIdx].qty = parseFloat(sItems[sIdx].qty) - pickQty; if(sItems[sIdx].qty <= 0) sItems.splice(sIdx, 1); if(sItems.length === 0) delete inventory[sloc]; activeSessionDetails.push({mat: code, desc: desc, batch: batch, qty: pickQty, source: sloc, target: "LUAR (PICKED)", type: "OUT"}); updateSessionCount(); btn.outerHTML = `<div class="badge bg-success p-2 shadow-sm text-center">DIAMBIL (${formatNum(pickQty)} KG)</div>`; updateMapData(); }
+}
+
+// Eksekusi saat halaman terbuka
 window.onload = loadDataFromCloud;
 </script>
 
